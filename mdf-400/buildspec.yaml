@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - pip install -r mdf-400/requirements.txt -t mdf-400
+
+artifacts:
+  base-directory: mdf-400
+  files:
+    - '**/*'
+  type: zip
+
+cache:
+  paths:
+    - /root/.cache/pip
