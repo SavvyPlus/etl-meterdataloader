@@ -182,118 +182,6 @@ Resources:
     Properties:
       BucketName: !Sub "meterdataloader-bucket.${AWS::StackName}"
 
-  MDF100InputBucket:
-    Type: AWS::S3::Bucket
-    DependsOn: MDF100InputBucketPermission
-    Properties:
-      BucketName: !Sub "mdf-100-${AWS::StackName}.input"
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: "s3:ObjectCreated:*"
-            Function: !GetAtt MDF100Lambda.Arn
-
-  MDF100InputBucketPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: 'lambda:InvokeFunction'
-      FunctionName: !Ref MDF100Lambda
-      Principal: s3.amazonaws.com
-      SourceArn: !Sub "arn:aws:s3:::mdf-100-${AWS::StackName}.input"
-
-  MDF100ProcessingBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "mdf-100-${AWS::StackName}.processing"
-
-  MDF100DoneBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "mdf-100-${AWS::StackName}.done"
-
-  MDF200InputBucket:
-    Type: AWS::S3::Bucket
-    DependsOn: MDF200InputBucketPermission
-    Properties:
-      BucketName: !Sub "mdf-200-${AWS::StackName}.input"
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: "s3:ObjectCreated:*"
-            Function: !GetAtt MDF200Lambda.Arn
-
-  MDF200InputBucketPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: 'lambda:InvokeFunction'
-      FunctionName: !Ref MDF200Lambda
-      Principal: s3.amazonaws.com
-      SourceArn: !Sub "arn:aws:s3:::mdf-200-${AWS::StackName}.input"
-
-  MDF200ProcessingBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "mdf-200-${AWS::StackName}.processing"
-
-  MDF200DoneBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "mdf-200-${AWS::StackName}.done"
-
-  MDF300InputBucket:
-    Type: AWS::S3::Bucket
-    DependsOn: MDF300InputBucketPermission
-    Properties:
-      BucketName: !Sub "mdf-300-${AWS::StackName}.input"
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: "s3:ObjectCreated:*"
-            Function: !GetAtt MDF300Lambda.Arn
-
-  MDF300InputBucketPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: 'lambda:InvokeFunction'
-      FunctionName: !Ref MDF300Lambda
-      Principal: s3.amazonaws.com
-      SourceArn: !Sub "arn:aws:s3:::mdf-300-${AWS::StackName}.input"
-
-  MDF300ProcessingBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "mdf-300-${AWS::StackName}.processing"
-
-  MDF300DoneBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "mdf-300-${AWS::StackName}.done"
-
-  MDF400InputBucket:
-    Type: AWS::S3::Bucket
-    DependsOn: MDF400InputBucketPermission
-    Properties:
-      BucketName: !Sub "mdf-400-${AWS::StackName}.input"
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: "s3:ObjectCreated:*"
-            Function: !GetAtt MDF400Lambda.Arn
-
-  MDF400InputBucketPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: 'lambda:InvokeFunction'
-      FunctionName: !Ref MDF400Lambda
-      Principal: s3.amazonaws.com
-      SourceArn: !Sub "arn:aws:s3:::mdf-400-${AWS::StackName}.input"
-
-  MDF400ProcessingBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "mdf-400-${AWS::StackName}.processing"
-
-  MDF400DoneBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "mdf-400-${AWS::StackName}.done"
-
   MDF500InputBucket:
     Type: AWS::S3::Bucket
     DependsOn: MDF500InputBucketPermission
@@ -433,74 +321,6 @@ Outputs:
     Value:
       Ref: MeterDataLoaderTopic
 
-  MDF100InputBucketArn:
-    Description: "Arn of MDF100InputBucket"
-    Value:
-      !GetAtt [MDF100InputBucket, Arn]
-    Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MDF100InputBucket ] ]
-
-  MDF100ProcessingBucketArn:
-    Description: "Arn of MDF100ProcessingBucket"
-    Value:
-      !GetAtt [MDF100ProcessingBucket, Arn]
-
-  MDF100DoneBucketArn:
-    Description: "Arn of MDF100DoneBucket"
-    Value:
-      !GetAtt [MDF100DoneBucket, Arn]
-
-  MDF200InputBucketArn:
-    Description: "Arn of MDF200InputBucket"
-    Value:
-      !GetAtt [MDF200InputBucket, Arn]
-    Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MDF200InputBucket ] ]
-
-  MDF200ProcessingBucketArn:
-    Description: "Arn of MDF200ProcessingBucket"
-    Value:
-      !GetAtt [MDF200ProcessingBucket, Arn]
-
-  MDF200DoneBucketArn:
-    Description: "Arn of MDF200DoneBucket"
-    Value:
-      !GetAtt [MDF200DoneBucket, Arn]
-
-  MDF300InputBucketArn:
-    Description: "Arn of MDF300InputBucket"
-    Value:
-      !GetAtt [MDF300InputBucket, Arn]
-    Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MDF300InputBucket ] ]
-
-  MDF300ProcessingBucketArn:
-    Description: "Arn of MDF300ProcessingBucket"
-    Value:
-      !GetAtt [MDF300ProcessingBucket, Arn]
-
-  MDF300DoneBucketArn:
-    Description: "Arn of MDF300DoneBucket"
-    Value:
-      !GetAtt [MDF300DoneBucket, Arn]
-
-  MDF400InputBucketArn:
-    Description: "Arn of MDF400InputBucket"
-    Value:
-      !GetAtt [MDF400InputBucket, Arn]
-    Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MDF400InputBucket ] ]
-
-  MDF400ProcessingBucketArn:
-    Description: "Arn of MDF400ProcessingBucket"
-    Value:
-      !GetAtt [MDF400ProcessingBucket, Arn]
-
-  MDF400DoneBucketArn:
-    Description: "Arn of MDF400DoneBucket"
-    Value:
-      !GetAtt [MDF400DoneBucket, Arn]
-
   MDF500InputBucketArn:
     Description: "Arn of MDF500InputBucket"
     Value:
@@ -565,6 +385,6 @@ Outputs:
       !GetAtt [MDF550ProcessingBucket, Arn]
 
   MDF550DoneBucketArn:
-    Description: "Arn of MDF400DoneBucket"
+    Description: "Arn of MDF550DoneBucket"
     Value:
       !GetAtt [MDF550DoneBucket, Arn]
