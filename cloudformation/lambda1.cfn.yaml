@@ -1,0 +1,390 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template to build lambdas and dependencies for lambdas
+
+Parameters:
+
+  SourceLocation:
+    Type: String
+    Description: S3 bucket path where the original source code (and cfn config) is stored
+
+  MDF100Location:
+    Type: String
+    Description: S3 bucket path where the built mdf_100 lambda is stored
+
+  MDF100Key:
+    Type: String
+    Description: S3 key where the built mdf_100 lambda is stored
+
+  MDF200Location:
+    Type: String
+    Description: S3 bucket path where the built mdf_200 lambda is stored
+
+  MDF200Key:
+    Type: String
+    Description: S3 key where the built mdf_200 lambda is stored
+
+  MDF300Location:
+    Type: String
+    Description: S3 bucket path where the built mdf_300 lambda is stored
+
+  MDF300Key:
+    Type: String
+    Description: S3 key where the built mdf_300 lambda is stored
+
+  MDF400Location:
+    Type: String
+    Description: S3 bucket path where the built mdf_400 lambda is stored
+
+  MDF400Key:
+    Type: String
+    Description: S3 key where the built mdf_400 lambda is stored
+
+  Name:
+    Type: String
+    Description: Name of the stack
+
+Resources:
+
+  MeterDataLoaderDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: "meterdataloader-dlq"
+
+  MeterDataLoaderQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: "meterdataloader-queue"
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt [ASXDLQ, Arn]
+        maxReceiveCount: 5
+
+  MeterDataLoaderTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "meterdataloader-topic"
+      TopicName: "meteredataloader-topic"
+      Subscription:
+        - Endpoint:
+            Fn::GetAtt:
+              - "MeterDataLoaderQueue"
+              - "Arn"
+          Protocol: 'sqs'
+
+  MeterDataLoaderQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues: [!Ref 'MeterDataLoaderQueue']
+      PolicyDocument:
+        Version: "2012-10-17"
+        Id: MeterDataLoaderQueuePolicy
+        Statement:
+          - Resource:
+              - Fn::GetAtt:
+                - "MeterDataLoaderQueue"
+                - "Arn"
+            Effect: "Allow"
+            Sid: "Allow-User-SendMessage"
+            Action:
+              - "sqs:SendMessage"
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref MeterDataLoaderTopic
+            Principal:
+              AWS: "*"
+
+  LambdaRunnerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      Path: /
+      Policies:
+        - PolicyName: LambdaRequired
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: LambdaPolicy
+                Action:
+                  - 's3:*'
+                  - 'sns:*'
+                  - 'lambda:*'
+                Effect: Allow
+                Resource: '*'
+              - Sid: CloudWatchWriteLogsPolicy
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+
+  MDF100Lambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          'Fn::ImportValue': 'MDF100ArtifactsBucket'
+        S3Key: !Ref MDF100Key
+      FunctionName: "mdf_100"
+      Handler: "mdf_100.handler"
+      Role: !GetAtt LambdaRunnerRole.Arn
+      Runtime: python3.6
+      Timeout: 300
+
+  MDF200Lambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          'Fn::ImportValue': 'MDF200ArtifactsBucket'
+        S3Key: !Ref MDF200Key
+      FunctionName: "mdf_200"
+      Handler: "mdf_200.handler"
+      Role: !GetAtt LambdaRunnerRole.Arn
+      Runtime: python3.6
+      Timeout: 300
+
+  MDF300Lambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          'Fn::ImportValue': 'MDF300ArtifactsBucket'
+        S3Key: !Ref MDF300Key
+      FunctionName: "mdf_300"
+      Handler: "mdf_300.handler"
+      Role: !GetAtt LambdaRunnerRole.Arn
+      Runtime: python3.6
+      Timeout: 300
+
+  MDF400Lambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          'Fn::ImportValue': 'MDF400ArtifactsBucket'
+        S3Key: !Ref MDF400Key
+      FunctionName: "mdf_400"
+      Handler: "mdf_400.handler"
+      Role: !GetAtt LambdaRunnerRole.Arn
+      Runtime: python3.6
+      Timeout: 300
+
+  MeterDataLoaderBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "meterdataloader-bucket.${AWS::StackName}"
+
+  MDF100InputBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: MDF100InputBucketPermission
+    Properties:
+      BucketName: !Sub "mdf-100-${AWS::StackName}.input"
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Function: !GetAtt MDF100Lambda.Arn
+
+  MDF100InputBucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref MDF100Lambda
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::mdf-100-${AWS::StackName}.input"
+
+  MDF100ProcessingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "mdf-100-${AWS::StackName}.processing"
+
+  MDF100DoneBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "mdf-100-${AWS::StackName}.done"
+
+  MDF200InputBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: MDF200InputBucketPermission
+    Properties:
+      BucketName: !Sub "mdf-200-${AWS::StackName}.input"
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Function: !GetAtt MDF200Lambda.Arn
+
+  MDF200InputBucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref MDF200Lambda
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::mdf-200-${AWS::StackName}.input"
+
+  MDF200ProcessingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "mdf-200-${AWS::StackName}.processing"
+
+  MDF200DoneBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "mdf-200-${AWS::StackName}.done"
+
+  MDF300InputBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: MDF300InputBucketPermission
+    Properties:
+      BucketName: !Sub "mdf-300-${AWS::StackName}.input"
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Function: !GetAtt MDF300Lambda.Arn
+
+  MDF300InputBucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref MDF300Lambda
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::mdf-300-${AWS::StackName}.input"
+
+  MDF300ProcessingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "mdf-300-${AWS::StackName}.processing"
+
+  MDF300DoneBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "mdf-300-${AWS::StackName}.done"
+
+  MDF400InputBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: MDF400InputBucketPermission
+    Properties:
+      BucketName: !Sub "mdf-400-${AWS::StackName}.input"
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Function: !GetAtt MDF400Lambda.Arn
+
+  MDF400InputBucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref MDF400Lambda
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::mdf-400-${AWS::StackName}.input"
+
+  MDF400ProcessingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "mdf-400-${AWS::StackName}.processing"
+
+  MDF400DoneBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "mdf-400-${AWS::StackName}.done"
+
+Outputs:
+
+  MeterDataLoaderDLQURL:
+    Description: "URL of DLQ"
+    Value:
+      Ref: MeterDataLoaderDLQ
+
+  MeterDataLoaderDLQArn:
+    Description: "Arn of DLQ"
+    Value:
+      !GetAtt [MeterDataLoaderDLQ, Arn]
+
+  MeterDataLoaderQueueURL:
+    Description: "URL of meterdataloader-queue"
+    Value:
+      Ref: MeterDataLoaderQueue
+
+  MeterDataLoaderQueueArn:
+    Description: "Arn of meterdataloader-queue"
+    Value:
+      !GetAtt [MeterDataLoaderQueue, Arn]
+
+  MeterDataLoaderTopicArn:
+    Description: "Arn of meterdataloader-topic"
+    Value:
+      Ref: MeterDataLoaderTopic
+
+  MDF100InputBucketArn:
+    Description: "Arn of MDF100InputBucket"
+    Value:
+      !GetAtt [MDF100InputBucket, Arn]
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", MDF100InputBucket ] ]
+
+  MDF100ProcessingBucketArn:
+    Description: "Arn of MDF100ProcessingBucket"
+    Value:
+      !GetAtt [MDF100ProcessingBucket, Arn]
+
+  MDF100DoneBucketArn:
+    Description: "Arn of MDF100DoneBucket"
+    Value:
+      !GetAtt [MDF100DoneBucket, Arn]
+
+  MDF200InputBucketArn:
+    Description: "Arn of MDF200InputBucket"
+    Value:
+      !GetAtt [MDF200InputBucket, Arn]
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", MDF200InputBucket ] ]
+
+  MDF200ProcessingBucketArn:
+    Description: "Arn of MDF200ProcessingBucket"
+    Value:
+      !GetAtt [MDF200ProcessingBucket, Arn]
+
+  MDF200DoneBucketArn:
+    Description: "Arn of MDF200DoneBucket"
+    Value:
+      !GetAtt [MDF200DoneBucket, Arn]
+
+  MDF300InputBucketArn:
+    Description: "Arn of MDF300InputBucket"
+    Value:
+      !GetAtt [MDF300InputBucket, Arn]
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", MDF300InputBucket ] ]
+
+  MDF300ProcessingBucketArn:
+    Description: "Arn of MDF300ProcessingBucket"
+    Value:
+      !GetAtt [MDF300ProcessingBucket, Arn]
+
+  MDF300DoneBucketArn:
+    Description: "Arn of MDF300DoneBucket"
+    Value:
+      !GetAtt [MDF300DoneBucket, Arn]
+
+  MDF400InputBucketArn:
+    Description: "Arn of MDF400InputBucket"
+    Value:
+      !GetAtt [MDF400InputBucket, Arn]
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", MDF400InputBucket ] ]
+
+  MDF400ProcessingBucketArn:
+    Description: "Arn of MDF400ProcessingBucket"
+    Value:
+      !GetAtt [MDF400ProcessingBucket, Arn]
+
+  MDF400DoneBucketArn:
+    Description: "Arn of MDF400DoneBucket"
+    Value:
+      !GetAtt [MDF400DoneBucket, Arn]
