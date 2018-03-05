@@ -494,7 +494,7 @@ Resources:
                 StackName: !Ref TestStackName
                 Capabilities: CAPABILITY_NAMED_IAM
                 TemplateConfiguration: !Sub "SourceCode::cloudformation/config/${TestStackConfig}"
-                TemplatePath: "SourceCode::cloudformation/lambda.cfn.yaml"
+                TemplatePath: "SourceCode::cloudformation/lambda1.cfn.yaml"
                 ParameterOverrides: !Sub |
                   {
                     "SourceLocation" : { "Fn::GetArtifactAtt" : ["SourceCode", "URL"] },
@@ -527,7 +527,7 @@ Resources:
                 StackName: !Ref TestStackName
                 Capabilities: CAPABILITY_NAMED_IAM
                 TemplateConfiguration: !Sub "SourceCode::cloudformation/config/${TestStackConfig}"
-                TemplatePath: "SourceCode::cloudformation/lambda.cfn.yaml"
+                TemplatePath: "SourceCode::cloudformation/lambda2.cfn.yaml"
                 ParameterOverrides: !Sub |
                   {
                     "SourceLocation" : { "Fn::GetArtifactAtt" : ["SourceCode", "URL"] },
@@ -586,7 +586,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ChangeSetName: !Ref ChangeSetName
                 TemplateConfiguration: !Sub "SourceCode::cloudformation/config/${ProdStackConfig}"
-                TemplatePath: "SourceCode::cloudformation/lambda.cfn.yaml"
+                TemplatePath: "SourceCode::cloudformation/lambda1.cfn.yaml"
                 ParameterOverrides: !Sub |
                   {
                     "SourceLocation" : { "Fn::GetArtifactAtt" : ["SourceCode", "URL"] },
@@ -620,7 +620,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ChangeSetName: !Ref ChangeSetName
                 TemplateConfiguration: !Sub "SourceCode::cloudformation/config/${ProdStackConfig}"
-                TemplatePath: "SourceCode::cloudformation/lambda.cfn.yaml"
+                TemplatePath: "SourceCode::cloudformation/lambda2.cfn.yaml"
                 ParameterOverrides: !Sub |
                   {
                     "SourceLocation" : { "Fn::GetArtifactAtt" : ["SourceCode", "URL"] },
