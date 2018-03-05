@@ -130,7 +130,7 @@ Resources:
     Properties:
       Code:
         S3Bucket:
-          'Fn::ImportValue': 'MDF100ArtifactsBucket'
+          'Fn::ImportValue': 'MeterDataLoaderArtifactsBucket'
         S3Key: !Ref MDF100Key
       FunctionName: "mdf_100"
       Handler: "mdf_100.handler"
@@ -143,7 +143,7 @@ Resources:
     Properties:
       Code:
         S3Bucket:
-          'Fn::ImportValue': 'MDF200ArtifactsBucket'
+          'Fn::ImportValue': 'MeterDataLoaderArtifactsBucket'
         S3Key: !Ref MDF200Key
       FunctionName: "mdf_200"
       Handler: "mdf_200.handler"
@@ -156,7 +156,7 @@ Resources:
     Properties:
       Code:
         S3Bucket:
-          'Fn::ImportValue': 'MDF300ArtifactsBucket'
+          'Fn::ImportValue': 'MeterDataLoaderArtifactsBucket'
         S3Key: !Ref MDF300Key
       FunctionName: "mdf_300"
       Handler: "mdf_300.handler"
@@ -169,7 +169,7 @@ Resources:
     Properties:
       Code:
         S3Bucket:
-          'Fn::ImportValue': 'MDF400ArtifactsBucket'
+          'Fn::ImportValue': 'MeterDataLoaderArtifactsBucket'
         S3Key: !Ref MDF400Key
       FunctionName: "mdf_400"
       Handler: "mdf_400.handler"

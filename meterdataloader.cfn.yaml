@@ -665,4 +665,4 @@ Outputs:
     Description: S3 bucket holding all the OutputArtifacts of any pipeline stage
     Value: !Ref ArtifactBucket
     Export:
-      Name: 'MeterDataLoaderBucket'
+      Name: 'MeterDataLoaderArtifactsBucket'
