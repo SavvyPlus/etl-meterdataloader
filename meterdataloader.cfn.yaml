@@ -476,7 +476,7 @@ Resources:
 
         - Name: TestStage
           Actions:
-            - Name: CreateLambdasAndDependencies
+            - Name: CreateLambdasAndDependencies1
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
@@ -488,10 +488,6 @@ Resources:
                 - Name: BuildMDF200LambdaOutput
                 - Name: BuildMDF300LambdaOutput
                 - Name: BuildMDF400LambdaOutput
-                - Name: BuildMDF500LambdaOutput
-                - Name: BuildMDF900LambdaOutput
-                - Name: BuildMDF250LambdaOutput
-                - Name: BuildMDF550LambdaOutput
               Configuration:
                 ActionMode: REPLACE_ON_FAILURE
                 RoleArn: !GetAtt [CFNRole, Arn]
@@ -509,7 +505,32 @@ Resources:
                     "MDF300Location" : { "Fn::GetArtifactAtt" : ["BuildMDF300LambdaOutput", "URL"] },
                     "MDF300Key" : { "Fn::GetArtifactAtt" : ["BuildMDF300LambdaOutput", "ObjectKey"] },
                     "MDF400Location" : { "Fn::GetArtifactAtt" : ["BuildMDF400LambdaOutput", "URL"] },
-                    "MDF400Key" : { "Fn::GetArtifactAtt" : ["BuildMDF400LambdaOutput", "ObjectKey"] },
+                    "MDF400Key" : { "Fn::GetArtifactAtt" : ["BuildMDF400LambdaOutput", "ObjectKey"] }
+                  }
+              RunOrder: '1'
+
+            - Name: CreateLambdasAndDependencies2
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceCode
+                - Name: BuildMDF500LambdaOutput
+                - Name: BuildMDF900LambdaOutput
+                - Name: BuildMDF250LambdaOutput
+                - Name: BuildMDF550LambdaOutput
+              Configuration:
+                ActionMode: REPLACE_ON_FAILURE
+                RoleArn: !GetAtt [CFNRole, Arn]
+                StackName: !Ref TestStackName
+                Capabilities: CAPABILITY_NAMED_IAM
+                TemplateConfiguration: !Sub "SourceCode::cloudformation/config/${TestStackConfig}"
+                TemplatePath: "SourceCode::cloudformation/lambda.cfn.yaml"
+                ParameterOverrides: !Sub |
+                  {
+                    "SourceLocation" : { "Fn::GetArtifactAtt" : ["SourceCode", "URL"] },
                     "MDF500Location" : { "Fn::GetArtifactAtt" : ["BuildMDF500LambdaOutput", "URL"] },
                     "MDF500Key" : { "Fn::GetArtifactAtt" : ["BuildMDF500LambdaOutput", "ObjectKey"] },
                     "MDF900Location" : { "Fn::GetArtifactAtt" : ["BuildMDF900LambdaOutput", "URL"] },
@@ -519,7 +540,7 @@ Resources:
                     "MDF550Location" : { "Fn::GetArtifactAtt" : ["BuildMDF550LambdaOutput", "URL"] },
                     "MDF550Key" : { "Fn::GetArtifactAtt" : ["BuildMDF550LambdaOutput", "ObjectKey"] }
                   }
-              RunOrder: '1'
+              RunOrder: '2'
 
             - Name: ApproveTestStack
               ActionTypeId:
@@ -530,7 +551,7 @@ Resources:
               Configuration:
                 NotificationArn: !Ref CodePipelineSNSTopic
                 CustomData: !Sub 'Do you want to create a changeset against the production stack and delete the test stack?'
-              RunOrder: '2'
+              RunOrder: '3'
 
             - Name: DeleteTestStack
               ActionTypeId:
@@ -542,11 +563,11 @@ Resources:
                 ActionMode: DELETE_ONLY
                 RoleArn: !GetAtt [CFNRole, Arn]
                 StackName: !Ref TestStackName
-              RunOrder: '3'
+              RunOrder: '4'
 
         - Name: ProdStage
           Actions:
-            - Name: CreateChangeSet
+            - Name: CreateChangeSet1
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
@@ -558,10 +579,6 @@ Resources:
                 - Name: BuildMDF200LambdaOutput
                 - Name: BuildMDF300LambdaOutput
                 - Name: BuildMDF400LambdaOutput
-                - Name: BuildMDF500LambdaOutput
-                - Name: BuildMDF900LambdaOutput
-                - Name: BuildMDF250LambdaOutput
-                - Name: BuildMDF550LambdaOutput
               Configuration:
                 ActionMode: CHANGE_SET_REPLACE
                 RoleArn: !GetAtt [CFNRole, Arn]
@@ -580,7 +597,33 @@ Resources:
                     "MDF300Location" : { "Fn::GetArtifactAtt" : ["BuildMDF300LambdaOutput", "URL"] },
                     "MDF300Key" : { "Fn::GetArtifactAtt" : ["BuildMDF300LambdaOutput", "ObjectKey"] },
                     "MDF400Location" : { "Fn::GetArtifactAtt" : ["BuildMDF400LambdaOutput", "URL"] },
-                    "MDF400Key" : { "Fn::GetArtifactAtt" : ["BuildMDF400LambdaOutput", "ObjectKey"] },
+                    "MDF400Key" : { "Fn::GetArtifactAtt" : ["BuildMDF400LambdaOutput", "ObjectKey"] }
+                  }
+              RunOrder: '1'
+
+            - Name: CreateChangeSet2
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceCode
+                - Name: BuildMDF500LambdaOutput
+                - Name: BuildMDF900LambdaOutput
+                - Name: BuildMDF250LambdaOutput
+                - Name: BuildMDF550LambdaOutput
+              Configuration:
+                ActionMode: CHANGE_SET_REPLACE
+                RoleArn: !GetAtt [CFNRole, Arn]
+                StackName: !Ref ProdStackName
+                Capabilities: CAPABILITY_NAMED_IAM
+                ChangeSetName: !Ref ChangeSetName
+                TemplateConfiguration: !Sub "SourceCode::cloudformation/config/${ProdStackConfig}"
+                TemplatePath: "SourceCode::cloudformation/lambda.cfn.yaml"
+                ParameterOverrides: !Sub |
+                  {
+                    "SourceLocation" : { "Fn::GetArtifactAtt" : ["SourceCode", "URL"] },
                     "MDF500Location" : { "Fn::GetArtifactAtt" : ["BuildMDF500LambdaOutput", "URL"] },
                     "MDF500Key" : { "Fn::GetArtifactAtt" : ["BuildMDF500LambdaOutput", "ObjectKey"] },
                     "MDF900Location" : { "Fn::GetArtifactAtt" : ["BuildMDF900LambdaOutput", "URL"] },
@@ -590,7 +633,8 @@ Resources:
                     "MDF550Location" : { "Fn::GetArtifactAtt" : ["BuildMDF550LambdaOutput", "URL"] },
                     "MDF550Key" : { "Fn::GetArtifactAtt" : ["BuildMDF550LambdaOutput", "ObjectKey"] }
                   }
-              RunOrder: '1'
+              RunOrder: '2'
+
             - Name: ApproveChangeSet
               ActionTypeId:
                 Category: Approval
@@ -600,7 +644,8 @@ Resources:
               Configuration:
                 NotificationArn: !Ref CodePipelineSNSTopic
                 CustomData: !Sub 'A new change set was created for the ${ProdStackName} stack. Do you want to implement the changes?'
-              RunOrder: '2'
+              RunOrder: '3'
+
             - Name: ExecuteChangeSet
               ActionTypeId:
                 Category: Deploy
@@ -612,7 +657,7 @@ Resources:
                 ChangeSetName: !Ref ChangeSetName
                 RoleArn: !GetAtt [CFNRole, Arn]
                 StackName: !Ref ProdStackName
-              RunOrder: '3'
+              RunOrder: '4'
 
 Outputs:
 
