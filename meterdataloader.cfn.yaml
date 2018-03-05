@@ -210,7 +210,7 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/python:3.5.2
         Type: LINUX_CONTAINER
-      Name: 'MDF100Lambda'
+      Name: 'MDF200Lambda'
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -230,7 +230,7 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/python:3.5.2
         Type: LINUX_CONTAINER
-      Name: 'MDF100Lambda'
+      Name: 'MDF300Lambda'
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -250,7 +250,7 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/python:3.5.2
         Type: LINUX_CONTAINER
-      Name: 'MDF100Lambda'
+      Name: 'MDF400Lambda'
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -270,7 +270,7 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/python:3.5.2
         Type: LINUX_CONTAINER
-      Name: 'MDF100Lambda'
+      Name: 'MDF500Lambda'
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -290,7 +290,7 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/python:3.5.2
         Type: LINUX_CONTAINER
-      Name: 'MDF100Lambda'
+      Name: 'MDF900Lambda'
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -310,7 +310,7 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/python:3.5.2
         Type: LINUX_CONTAINER
-      Name: 'MDF100Lambda'
+      Name: 'MDF250Lambda'
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -330,7 +330,7 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/python:3.5.2
         Type: LINUX_CONTAINER
-      Name: 'MDF100Lambda'
+      Name: 'MDF550Lambda'
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
