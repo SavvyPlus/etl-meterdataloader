@@ -55,7 +55,7 @@ Resources:
     Properties:
       QueueName: "meterdataloader-queue"
       RedrivePolicy:
-        deadLetterTargetArn: !GetAtt [ASXDLQ, Arn]
+        deadLetterTargetArn: !GetAtt [MeterDataLoaderDLQ, Arn]
         maxReceiveCount: 5
 
   MeterDataLoaderTopic:
