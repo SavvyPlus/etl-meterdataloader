@@ -47,13 +47,10 @@ Resources:
 
   MeterDataLoaderDLQ:
     Type: AWS::SQS::Queue
-    Properties:
-      QueueName: "meterdataloader-dlq"
 
   MeterDataLoaderQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: "meterdataloader-queue"
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt [MeterDataLoaderDLQ, Arn]
         maxReceiveCount: 5
@@ -61,8 +58,7 @@ Resources:
   MeterDataLoaderTopic:
     Type: AWS::SNS::Topic
     Properties:
-      DisplayName: "meterdataloader-topic"
-      TopicName: "meteredataloader-topic"
+      DisplayName: !Join [ ".", [ meterdataloader-topic, !Ref "AWS::StackName" ] ]
       Subscription:
         - Endpoint:
             Fn::GetAtt:
@@ -132,7 +128,8 @@ Resources:
         S3Bucket:
           'Fn::ImportValue': 'MeterDataLoaderArtifactsBucket'
         S3Key: !Ref MDF500Key
-      FunctionName: "mdf_500"
+      FunctionName:
+        Fn::Sub: mdf_500-${AWS::StackName}
       Handler: "mdf_500.handler"
       Role: !GetAtt LambdaRunnerRole.Arn
       Runtime: python3.6
@@ -145,7 +142,8 @@ Resources:
         S3Bucket:
           'Fn::ImportValue': 'MeterDataLoaderArtifactsBucket'
         S3Key: !Ref MDF900Key
-      FunctionName: "mdf_900"
+      FunctionName:
+        Fn::Sub: mdf_900-${AWS::StackName}
       Handler: "mdf_900.handler"
       Role: !GetAtt LambdaRunnerRole.Arn
       Runtime: python3.6
@@ -158,7 +156,8 @@ Resources:
         S3Bucket:
           'Fn::ImportValue': 'MeterDataLoaderArtifactsBucket'
         S3Key: !Ref MDF250Key
-      FunctionName: "mdf_250"
+      FunctionName:
+        Fn::Sub: mdf_250-${AWS::StackName}
       Handler: "mdf_250.handler"
       Role: !GetAtt LambdaRunnerRole.Arn
       Runtime: python3.6
@@ -171,7 +170,8 @@ Resources:
         S3Bucket:
           'Fn::ImportValue': 'MeterDataLoaderArtifactsBucket'
         S3Key: !Ref MDF550Key
-      FunctionName: "mdf_550"
+      FunctionName:
+        Fn::Sub: mdf_550-${AWS::StackName}
       Handler: "mdf_550.handler"
       Role: !GetAtt LambdaRunnerRole.Arn
       Runtime: python3.6
