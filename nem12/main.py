@@ -118,6 +118,7 @@ def mdf_length_type_check(toks, fields, data_types, lengths, mandatory):
 
 def createCSV(fname, headers, vals):
     # res variable will cach the merged table
+    # ----
     res = [headers]
 
     for each in vals:
@@ -132,6 +133,7 @@ def createCSV(fname, headers, vals):
         with open(fname + '.csv', 'wb') as w:
             w.write(bytes_res)
     return bytes_res
+    # ----!
 
 
 def process_MDF_100(version_header,toks,last_rec_ind):
@@ -152,7 +154,7 @@ def process_MDF_100(version_header,toks,last_rec_ind):
     if not status:
         return False, []
 
-    print(vals)
+    # print(vals)
     # specific checks
     if (version_header is not None) and version_header != toks[0]:
         error_text = 'VersionHeader in filename and 100 record do not match. Filename has %s and 100-record has %s' % version_header, \
@@ -241,7 +243,7 @@ def process_MDF_200(version_header,toks,last_rec_ind, last100):
     fields.append('FileId')
     thisid = str(uuid.uuid4())
     vals.append(thisid)
-    print(vals)
+    # print(vals)
 
     createCSV('staging200', fields, [vals])
     return True, vals
@@ -249,6 +251,263 @@ def process_MDF_200(version_header,toks,last_rec_ind, last100):
 
 def process_MDF_250(version_header,toks,last_rec_ind,last100):
     return True, []
+
+# ====
+def process_MDF_300(version_header,toks,last_rec_ind,last100,last200):
+    valid_after = ['200','300','400','500']
+    table_name = 'NEMMDF_Staging_300'
+    n_readings = int(1440 / int(last200[7]))
+    qm = 1+n_readings
+    fields = ['IntervalDate']+ ['IntervalValue'+str(i) for i in range(1,n_readings+1)] +['QualityMethod','ReasonCode','ReasonDescription','UpdateDateTime','MSATSLoadDateTime']
+    db_fields = ['IntervalDate']+ ['IntervalValue'+str(i) for i in range(1,n_readings+1)] +['UpdateDateTime','MSATSLoadDateTime']
+
+    data_types = 'D' + 'N'*n_readings + 'VNVDD'
+    if last200[6][0].upper() == 'M':
+        reading_length = 15.6
+    elif last200[6][0].upper() == 'K':
+        reading_length = 15.3
+    elif last200[6][0].upper() == 'p':
+        reading_length = 15.2
+    else:
+        reading_length = 15
+
+    lengths = [8]+ [reading_length for i in range(1,n_readings+1)] +[3,3,240,14,14]
+    mandatory = [True] + [True for i in range(1,n_readings+1)] +[True,False,False,False,False]
+
+    if not last_rec_ind in valid_after:      # check for file blocking errors
+        error_text = 'Meter data file blocking error'
+        print (error_text)
+        return (False,[])
+
+    # allocate tokens, confirm data types and field lengths as required
+    (status,vals) = mdf_length_type_check(toks,fields,data_types,lengths,mandatory)
+    if not status:
+        return (False,[])
+
+    # specific checks
+
+    # valid qualitymethod
+    if toks[qm] not in ('A','N','V') and match(r"[AEFNSV][1567][1-9]",toks[qm]) is None:    # note: detects most but not all illegal values
+        error_text = 'Invalid QualityMethod value in 300 row. Found %s'% toks[qm]
+        print (error_text)
+        return (False,[])
+    # reasoncode valid if provided
+    if len(toks[qm+1])>0 and (int(vals[qm+1]) < 0 or int(vals[qm+1])>94):
+        error_text = 'Invalid ReasonCode supplied in 300 row. Found %s'% toks[qm+1]
+        print (error_text)
+        return (False,[])
+    # no reasoncode if qualityflag is V
+    if (vals[qm+1] is not None and toks[qm][0]=='V') or (vals[qm+1] is None and toks[qm][0] in ('F','S')):
+        error_text = 'In 300 row, ReasonCode supplied with quality "V" or ReasonCode not supplied with Quality "F" or "S". Quality flag %s, ReasonCode %s'% (toks[qm][0], toks[qm+1])
+        print (error_text)
+        return (False,[])
+    # reasondescription supplied if reasoncode = 0
+    if len(vals[qm+2]) < 1 and vals[qm+1]==0:
+        error_text = 'Missing ReasonDescription where ReasonCode is 0 in 300 row'
+        print (error_text)
+        return (False,[])
+    # updatedatetime provided unless qualitymethod is N
+    if vals[qm+3] is None and vals[qm][0] != 'N':
+        error_text = 'Missing UpdateDateTime in 300 row where Quality is not "N"'
+        print (error_text)
+        return (False,[])
+
+    # merge quality record and return id
+    # sql = sql_mdff_merge_statement(table_name,db_fields+['staging_200_id','source_file_id'],[])
+    # curs = conn.cursor()
+    # insert_vals = vals[0:n_readings+1] + vals[n_readings+4:]
+    # insert_vals[0] = str(insert_vals[0])
+    # for t in range(1,n_readings+1):
+    #     insert_vals[t] = float(insert_vals[t])
+    # curs.execute(sql, tuple(insert_vals)+(last200[-1],source_file_id))
+    # thisid = curs.fetchone()[0]
+    # curs.close()
+    # vals.append(thisid)
+
+    insert_vals = vals[0:n_readings+1] + vals[n_readings+4:]
+    # insert_vals[0] = str(insert_vals[0])
+    # insert_vals[0] = insert_vals[0].strftime('%Y-%m-%d %H:%M')
+    if isinstance(insert_vals[0], datetime):
+        insert_vals[0] = insert_vals[0].strftime('%Y-%m-%d %H:%M')
+    if isinstance(insert_vals[-1], datetime):
+        insert_vals[-1] = insert_vals[-1].strftime('%Y-%m-%d %H:%M')
+    if isinstance(insert_vals[-2], datetime):
+        insert_vals[-2] = insert_vals[-2].strftime('%Y-%m-%d %H:%M')
+
+    # for t in range(1,n_readings+1):
+    #     insert_vals[t] = float(insert_vals[t])
+
+    db_fields.append('Staging200Id')
+    insert_vals.append(last200[-1])
+    db_fields.append('FileId')
+    thisid = str(uuid.uuid4())
+    insert_vals.append(thisid)
+
+    vals.append(thisid)
+
+    # print(insert_vals)
+    insert_vals = [str(val) for val in insert_vals]
+
+    createCSV('staging300', db_fields, [insert_vals])
+
+    # insert dummy 400 record to hold quality information
+    if toks[qm][0] != 'V':
+        (tf,res) = process_MDF_400(version_header,['1',str(n_readings),toks[qm],toks[qm+1],toks[qm+2]],'300',last100,last200,vals,None)
+        if not tf:
+            return (False,[])
+
+
+    return (True,vals)
+
+
+
+
+def process_MDF_400(version_header,toks,last_rec_ind,last100,last200,last300,last400):
+    valid_after = ['300','400']
+    table_name = 'NEMMDF_Staging_400'
+    fields = ['StartInterval','EndInterval','QualityMethod','ReasonCode','ReasonDescription']
+
+    data_types = 'NNVNV'
+    lengths = [4,4,3,3,240]
+    mandatory = [True,True,True,False,False]
+    qm = 2
+
+    if not last_rec_ind in valid_after:      # check for file blocking errors
+        error_text = 'Meter data file blocking error'
+        print (error_text)
+        return (False,[])
+
+    # allocate tokens, confirm data types and field lengths as required
+    (status,vals) = mdf_length_type_check(toks,fields,data_types,lengths,mandatory)
+    if not status:
+        return (False,[])
+
+    # specific checks
+    vals[0] = int(vals[0])
+    vals[1] = int(vals[1])
+    last200[7] = int(last200[7])
+    if vals[0] < 1 or vals[1] < vals[0] or vals[1] > 1440/last200[7]:
+        error_text = 'Illegal StartInterval/EndInterval values. StartInterval = %d, EndInterval = %d, IntervalLength = %d'% vals[0], vals[1],last200[7]
+        print (error_text)
+        return (False,[])
+    if (last_rec_ind != '400' and vals[0] != 1) or (last_rec_ind == '400' and vals[0] != last400[1]+1):
+        error_text = 'Mismatch between StartInterval and preceeding row in 400-record'
+        print (error_text)
+        return (False,[])
+    # valid qualitymethod
+    if toks[qm] not in ('A','N') and match(r"[AEFNS][1567][1-9]",toks[qm]) is None:    # note: detects most but not all illegal values
+        error_text = 'Invalid QualityMethod value in 400 row. Found %s'% toks[qm]
+        print (error_text)
+        return (False,[])
+    # reasoncode valid if provided
+    if len(toks[qm+1])>0 and (int(vals[qm+1]) < 0 or int(vals[qm+1])>94):
+        error_text = 'Invalid ReasonCode supplied in 400 row. Found %s'% toks[qm+1]
+        print (error_text)
+        return (False,[])
+    # no reasoncode if qualityflag is V
+    if (vals[qm+1] is not None and toks[qm][0]=='V') or (vals[qm+1] is None and toks[qm][0] in ('F','S')):
+        error_text = 'In 400 row, ReasonCode supplied with quality "V" or ReasonCode not supplied with Quality "F" or "S". Quality flag %s, ReasonCode %s'% toks[qm][0], toks[qm+1]
+        print (error_text)
+        return (False,[])
+    # reasondescription supplied if reasoncode = 0
+    if len(vals[qm+2]) < 1 and vals[qm+1]==0:
+        error_text = 'Missing ReasonDescription where ReasonCode is 0 in 300 row'
+        print (error_text)
+        return (False,[])
+    # last300 had qualityflag V, or its a single-record 400 row
+
+    if last300[-6][0] != "V" and (vals[0] != 1 or vals[1] != 1440/last200[7]):
+        error_text = '400-record found after 300-row with quality not V'
+        print(error_text)
+        return (False,[])
+
+
+    # merge quality record to database, returning id
+    # sql = sql_mdff_merge_statement(table_name,fields+['staging_300_id','source_file_id'],[])
+    # curs = conn.cursor()
+    # curs.execute(sql, tuple(vals)+(last300[-1],source_file_id))
+    # thisid = curs.fetchone()[0]
+    # curs.close()
+    # vals.append(thisid)
+
+    fields.append('Staging300Id')
+    vals.append(last300[-1])
+    fields.append('FileId')
+    thisid = str(uuid.uuid4())
+    vals.append(thisid)
+    # print(vals)
+    vals = [str(val) for val in vals]
+
+    createCSV('staging400', fields, [vals])
+    return True, vals
+
+
+def process_MDF_500(version_header,toks,last_rec_ind,last100,last200,last300,last400):
+    valid_after = ['300','400','500']
+    table_name = 'NEMMDF_Staging_500'
+    fields = ['TransCode','RetServiceOrder','ReadDateTime','IndexRead']
+    data_types = 'CVDV'
+    lengths = [1,15,14,15]
+    mandatory = [True,False,False,False]
+
+    if not last_rec_ind in valid_after:      # check for file blocking errors
+        error_text = 'Meter data file blocking error'
+        print (error_text)
+        return (False,[])
+
+    # allocate tokens, confirm data types and field lengths as required
+    (status,vals) = mdf_length_type_check(toks,fields,data_types,lengths,mandatory)
+    if not status:
+        return (False,[])
+
+    # specific checks
+    if vals[0] not in ("A","C","G","D","E","N","O","S","R"):
+        error_text = 'vals[0] not in "A","C","G","D","E","N","O","S","R"'
+        print (error_text)
+        return (False,[])
+
+
+    # insert record to database, returning id
+
+    # sql = sql_mdff_merge_statement(table_name,fields+['staging_300_id','source_file_id'],[])
+    # curs = conn.cursor()
+    # curs.execute(sql, tuple(vals+[last300[-1],source_file_id]))
+    # thisid = curs.fetchone()[0]
+    # curs.close()
+    # vals.append(thisid)
+    fields.append('Staging300Id')
+    vals.append(last300[-1])
+    fields.append('FileId')
+    thisid = str(uuid.uuid4())
+    vals.append(thisid)
+    # print(vals)
+    # print (vals[2])
+    # print (type(vals[2]))
+    if isinstance(vals[2], datetime):
+        vals[2] = vals[2].strftime('%Y-%m-%d %H:%M')
+    vals = [str(val) for val in vals]
+
+
+    createCSV('staging500', fields, [vals])
+
+    return (True,vals)
+
+
+def process_MDF_900(version_header,toks,last_rec_ind):
+    valid_after = ['300','400','500']
+    if not last_rec_ind in valid_after:      # check for file blocking errors
+        error_text = 'Meter data file blocking error'
+        print (error_text)
+        return (False,[])
+
+    # curs = conn.cursor()
+    # curs.execdirect('EXEC MeterDataDB.dbo.MergeNEMMDF_Staging '+ str(source_file_id) )
+    # curs.close()
+    # conn.commit()
+
+    return (True,[])
+
+# ====!
 
 
 def process_MDF_550(version_header,toks,last_rec_ind,last250):
@@ -263,6 +522,7 @@ def handler(fname):
         (version_header,sender_id_val,from_participant,to_participant) = s
     else:
         print('Invalid file name encountered %s. Expecting NEMXX#IDENTIFIER_LEN36#FROMPARTIC#TOPARTICIP', filename)
+        version_header = sender_id_val = from_participant = to_participant = None
 
     # process file
     with open(fname, 'rt') as f:
@@ -280,8 +540,20 @@ def handler(fname):
                 status, last200 = process_MDF_200(version_header, toks[1:], last_rec_ind, last100)
             elif rec_ind == '250':
                 status,last250 = process_MDF_250(version_header,toks[1:],last_rec_ind,last100)
+            # khoa added
+            elif rec_ind == '300':
+                status,last300 = process_MDF_300(version_header,toks[1:],last_rec_ind,last100,last200)
+            elif rec_ind == '400':
+                status,last400 = process_MDF_400(version_header,toks[1:],last_rec_ind,last100,last200,last300,last400)
+            # elif rec_ind == '500':
+            #     status,res = process_MDF_500(conn,version_header,toks[1:],last_rec_ind,last100,last200,last300,last400,source_file_id)
+            elif rec_ind == '500':
+                status,res = process_MDF_500(version_header,toks[1:],last_rec_ind,last100,last200,last300,last400)
+            # end khoa added
             elif rec_ind == '550':
                 status,res = process_MDF_550(version_header,toks[1:],last_rec_ind,last100,last250)
+            elif rec_ind == '900':
+                status,res = process_MDF_900(version_header,toks[1:],last_rec_ind)
             else:
                 error_text = 'Meter data file error. Invalid record indicator found in line %d: "%s"' % (line_number, rec_ind)
                 print(error_text)
@@ -296,5 +568,5 @@ def handler(fname):
             last_rec_ind = rec_ind
             line_number = line_number + 1
 
-fname = 'NEM12#16042100299000000#GLOBALM#SPICK.csv'
+fname = 'nem12#0000022860#TCAUSTM#SAVVYPLUS.csv'
 handler(fname)
