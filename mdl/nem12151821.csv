@@ -1,0 +1,1 @@
+MeterPointID,Date,PeriodID,Net_KWH,Net_KVARH,Exp_KWH,Imp_KWH,Exp_KVARH,Imp_KVARH,KW,KVA,source_file_id,QualityCode,UOM,T_Start,T_End,Channel,IntervalLength

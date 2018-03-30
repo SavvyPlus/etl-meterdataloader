@@ -133,7 +133,7 @@ def createCSV(fname, headers, vals):
         with open(fname + '.csv', 'wb') as w:
             w.write(bytes_res)
     return bytes_res
-    # ----!
+# ----!
 
 
 def process_MDF_100(version_header,toks,last_rec_ind):
@@ -358,8 +358,6 @@ def process_MDF_300(version_header,toks,last_rec_ind,last100,last200):
 
 
     return (True,vals)
-
-
 
 
 def process_MDF_400(version_header,toks,last_rec_ind,last100,last200,last300,last400):
