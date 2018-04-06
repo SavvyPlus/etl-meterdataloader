@@ -3,10 +3,10 @@ version: 0.2
 phases:
   install:
     commands:
-      - pip install -r mdf-250/requirements.txt -t mdf-250
+      - pip install -r nem/requirements.txt -t nem
 
 artifacts:
-  base-directory: mdf-250
+  base-directory: nem
   files:
     - '**/*'
   type: zip
