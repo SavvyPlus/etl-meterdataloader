@@ -43,16 +43,16 @@ def process_file(csv_reader, file_name, local=True):
             t_end = readings[0].t_end
             interval = int(helpers.mins_bw_two_times(t_start, t_end))
             if interval == 15:
-                result = format.imd_format(nmi, channel, readings, file_name, 15, config.PERIOD_15MIN)
-                date = result[0]
-                reading_15min = result[1]
+                date, reading_15min  = format.imd_format(nmi, channel, readings, file_name, 15, config.PERIOD_15MIN)
+                # date = result[0]
+                # reading_15min = result[1]
                 if reading_15min:
                     all_readings_15min = all_readings_15min + reading_15min
             elif interval == 30:
                 # reading_30min = format.imd_30min(nmi, channel, readings, file_name)
-                result = format.imd_format(nmi, channel, readings, file_name, 30, config.PERIOD_30MIN)
-                date = result[0]
-                reading_30min = result[1]
+                date, reading_30min = format.imd_format(nmi, channel, readings, file_name, 30, config.PERIOD_30MIN)
+                # date = result[0]
+                # reading_30min = result[1]
                 if reading_30min:
                     all_readings_30min = all_readings_30min + reading_30min
             else:
@@ -68,21 +68,15 @@ def process_file(csv_reader, file_name, local=True):
 
 
 
-def test_local():
+def test_local(event, context):
     """
     create a CSV file
     """
-    file_name = "examples_input/NEM12#SA01YPLU160607VV#ENERGEXM#SAVVYPLU.csv"
+    # file_name = "examples_input/NEM12#SA01YPLU160607VV#ENERGEXM#SAVVYPLU.csv"
+    file_name = "examples_input/NEM12#16042100594000000#GLOBALM#SPICK.csv"
     with open(file_name) as nmi_file:
         reader = csv.reader(nmi_file, delimiter=',')
-        date, m = process_file(reader, file_name)
-        # print('Header:', m.header)
-        # print('Transactions:', m.transactions)
-        # for nmi in m.readings:
-        #     for channel in m.readings[nmi]:
-        #         print(nmi, 'Channel', channel)
-        #         for reading in m.readings[nmi][channel][-5:]:
-        #             print('', reading)
+        process_file(reader, file_name)
 
 
 def handler(event, context):
@@ -104,7 +98,7 @@ def handler(event, context):
         csv_reader = csv.reader(lines, delimiter=',')
         # date, bytes_imd_csv = process_file(csv_reader, file_name, local=False)
         result = process_file(csv_reader, file_name, local=False)
-        dst_key = s3_process.s3_key(result, "IMD_15_30_min_"+file_name)
+        dst_key = s3_process.s3_key(result[0],"IMD_15_30_min_"+file_name)
         s3_process.put_file(nem_bucket, dst_key, result[1])
 
         # move to NEM12_DONE_BUCKET
