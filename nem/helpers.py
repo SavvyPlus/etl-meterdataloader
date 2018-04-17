@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import urllib
+import datetime
 
 
 def create_csv(vals, header=None, delimiter=",", file_path=None):
@@ -48,3 +49,10 @@ def mins_bw_two_times(time1, time2):
     """
     diff = time2 - time1
     return diff.seconds / 60
+
+
+def get_time_now(text=True, format="%Y-%m-%d"):
+    if text is True:
+        return datetime.datetime.now().strftime(format)
+    else:
+        return datetime.datetime.now()

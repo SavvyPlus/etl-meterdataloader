@@ -8,16 +8,12 @@ UNZIP_PROCESSING_BUCKET = ''
 
 
 IMD_15MIN_HEADER_STR = """
-    MeterPointID	Date	PeriodID	Net_KWH	Net_KVARH	Exp_KWH	Imp_KWH	Exp_KVARH
-    Imp_KVARH	KW 	KVA	source_file_id	QualityCode
-    UOM
-    T_Start
-    T_End
-    Channel
+    MeterRef	Date	PeriodID	Net_KWH	Net_KVARH	Exp_KWH	Imp_KWH	Exp_KVARH
+    Imp_KVARH	KW	KVA	source_file_id	MDPUpdateDateTime	QualityCode
 """
 
 IMD_30MIN_HEADER_STR = """
-    MeterPointID	Date	PeriodID	Net_KWH	Net_KVARH	Exp_KWH	Imp_KWH	Exp_KVARH
+    MeterRef	Date	PeriodID	Net_KWH	Net_KVARH	Exp_KWH	Imp_KWH	Exp_KVARH
     Imp_KVARH	KW	KVA	KVA15	KW15	source_file_id	QualityCode
     UOM
     T_Start
@@ -25,14 +21,23 @@ IMD_30MIN_HEADER_STR = """
     Channel
 """
 
+# IMD_HEADER_STR = """
+#     MeterRef	Date	PeriodID	Net_KWH	Net_KVARH	Exp_KWH	Imp_KWH	Exp_KVARH
+#     Imp_KVARH	KW 	KVA	KVA15	KW15 source_file_id	QualityCode
+#     UOM
+#     T_Start
+#     T_End
+#     Channel
+#     IntervalLength
+# """
+
 IMD_HEADER_STR = """
-    MeterPointID	Date	PeriodID	Net_KWH	Net_KVARH	Exp_KWH	Imp_KWH	Exp_KVARH
-    Imp_KVARH	KW 	KVA	KVA15	KW15 source_file_id	QualityCode
-    UOM
-    T_Start
-    T_End
-    Channel
-    IntervalLength
+    MeterRef	Date	PeriodID	Net_KWH	Net_KVARH	Exp_KWH	Imp_KWH	Exp_KVARH
+    Imp_KVARH	KW 	KVA	KVA15	KW15 source_file_id
+    MDPUpdateDateTime
+
+    QualityCode
+    QualityNumber
 """
 
 IMD_15MIN_HEADER = IMD_15MIN_HEADER_STR.split()

@@ -1,9 +1,17 @@
+# @Author: anh
+# @Date:   2018-04-16T15:59:01+07:00
+# @Email:  anh.phan@edge-works.net
+# @Last modified by:   anh
+# @Last modified time: 2018-04-16T17:17:10+07:00
+
+
+
 """
 Load meter data in NEM12 format.
 Input is one file NEM12
 -> save to file csv combines: IMD_15min and IMD_30min
 """
-
+# TODO: check invalid after all process finish
 
 import csv
 
@@ -16,7 +24,9 @@ import nemreader as nr
 input_bucket = 'test-nem12.input'
 processing_bucket = 'test-nem12.processing'
 done_bucket = 'test-nem12.done'
-nem_bucket = 'test-nem12.prod'
+imd_15_bucket = 'test-nem12.imd-15.prod'
+imd_30_bucket = 'test-nem12.imd-30.prod'
+
 
 # input_bucket = 'generic-nem.input'
 # processing_bucket = 'generic-nem.processing'
@@ -57,27 +67,50 @@ def process_file(csv_reader, file_name, local=True):
                     all_readings_30min = all_readings_30min + reading_30min
             else:
                 continue
-    # TODO:
+
     # TODO: return two files: 15 and 30
     # format.get_30_from_15(all_readings_15min)
-    all_readings = all_readings_15min + all_readings_30min
+    # all_readings = all_readings_15min + all_readings_30min
+    # all_readings = format.merge_imd(all_readings_15min)
+
+    all_readings_15min = format.merge_imd(all_readings_15min)
+    all_readings_30min = format.merge_imd(all_readings_30min, 30, 48)
+
+
     if local:
-        helpers.create_csv(all_readings, config.IMD_HEADER, file_path="output/nem12151821.csv")
+        helpers.create_csv(all_readings_15min, config.IMD_HEADER, file_path="output/IMD_15_mins.csv")
+        readings_30_from_15 = format.get_30_from_15(all_readings_15min)
+        if readings_30_from_15:
+            all_readings_30min = readings_30_from_15 + all_readings_30min
+        helpers.create_csv(all_readings_30min, config.IMD_HEADER, file_path="output/IMD_30_mins.csv")
     else:
-        return date, helpers.create_csv(all_readings, config.IMD_HEADER)
+        # return date, helpers.create_csv(all_readings, config.IMD_HEADER)
+        reading_15min_byte = helpers.create_csv(all_readings_15min, config.IMD_HEADER)
+        readings_30_from_15 = format.get_30_from_15(all_readings_15min)
+        if readings_30_from_15:
+            all_readings_30min = readings_30_from_15 + all_readings_30min
+        reading_30min_byte = helpers.create_csv(all_readings_30min, config.IMD_HEADER)
+        return date, reading_15min_byte, reading_30min_byte
 
 
 
-def test_local(event, context):
+def test_local():
     """
     create a CSV file
     """
-    # file_name = "examples_input/NEM12#SA01YPLU160607VV#ENERGEXM#SAVVYPLU.csv"
+    # file_name = "examples_input/NEM12#17092200001000000#GLOBALM#SAVBELGRAV.csv"
     file_name = "examples_input/NEM12#16042100594000000#GLOBALM#SPICK.csv"
     with open(file_name) as nmi_file:
         reader = csv.reader(nmi_file, delimiter=',')
         process_file(reader, file_name)
-
+    # m = nr.read_nem_file(file_name)
+    # print('Header:', m.header)
+    # print('Transactions:', m.transactions)
+    # for nmi in m.readings:
+    #     for channel in m.readings[nmi]:
+    #         print(nmi, 'Channel', channel)
+    #         for reading in m.readings[nmi][channel][:]:
+    #             print('', reading)
 
 def handler(event, context):
     """
@@ -98,8 +131,11 @@ def handler(event, context):
         csv_reader = csv.reader(lines, delimiter=',')
         # date, bytes_imd_csv = process_file(csv_reader, file_name, local=False)
         result = process_file(csv_reader, file_name, local=False)
-        dst_key = s3_process.s3_key(result[0],"IMD_15_30_min_"+file_name)
-        s3_process.put_file(nem_bucket, dst_key, result[1])
+        dst_key = s3_process.s3_key(result[0],"IMD_15_min_"+file_name)
+        s3_process.put_file(imd_15_bucket, dst_key, result[1])
+
+        dst_key = s3_process.s3_key(result[0],"IMD_30_min_"+file_name)
+        s3_process.put_file(imd_30_bucket, dst_key, result[2])
 
         # move to NEM12_DONE_BUCKET
         s3_process.move_file(processing_bucket, file_name, done_bucket, file_name)
