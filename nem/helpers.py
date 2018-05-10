@@ -15,7 +15,6 @@ def create_csv(vals, header=None, delimiter=",", file_path=None):
     vals is an array of array
     *Note all header and vals are string type
     """
-
     vals_comma = [delimiter.join(val) for val in vals] # list of string val with comma
     full_content = "\n".join(vals_comma) # string full  vals with newline
 
@@ -56,3 +55,41 @@ def get_time_now(text=True, format="%Y-%m-%d"):
         return datetime.datetime.now().strftime(format)
     else:
         return datetime.datetime.now()
+
+
+def check_like(value, pattern, like=True):
+    """Check string match with a pattern
+    Check pattern match at beginning or ending of string,
+    or check pattern in value in any positions
+    Args:
+        value (string): string to check
+        pattern (string): pattern to check match
+        like (boolean): match LIKE or NOT LIKE, pattern in value or not
+    Returns:
+        type: boolean
+    Examples:
+        WHERE CustomerName LIKE 'a%'	Finds any values that starts with "a"
+        WHERE CustomerName LIKE '%a'	Finds any values that ends with "a"
+        WHERE CustomerName LIKE '%or%'	Finds any values that have "or" in any position
+    """
+    first = pattern[0]
+    end = pattern[-1]
+    # value = value.strip()
+    if first == "%" and end == "%":
+        return (pattern[1:-1] in value) == like
+    elif first == "%":
+        return value.endswith(pattern[1:]) == like
+    elif end == "%":
+        return value.startswith(pattern[:-1]) == like
+    else:
+        # check pattern in value
+        return (pattern in value) == like
+
+
+def check_spmdf_pattern(file_name, pattern):
+    """
+    rawdata*.csv
+    DOE rawdata*.csv
+    """
+    patterns = pattern.split("*")
+    return check_like(file_name, patterns[0]+"%") and check_like(file_name, "%"+patterns[-1])

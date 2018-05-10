@@ -1,11 +1,3 @@
-# @Author: anh
-# @Date:   2018-04-16T15:59:01+07:00
-# @Email:  anh.phan@edge-works.net
-# @Last modified by:   anh
-# @Last modified time: 2018-04-16T17:17:10+07:00
-
-
-
 """
 Load meter data in NEM12 format.
 Input is one file NEM12
@@ -122,7 +114,7 @@ def handler(event, context):
         file_name = event['Records'][0]['s3']['object']['key'].split('/')[-1]
         file_name = helpers.unquote_url(file_name)
         # move to PROCESSING_BUCKET
-        s3_process.move_file(input_bucket, file_name, processing_bucket, file_name)
+        s3_process.copy_file(input_bucket, file_name, processing_bucket, file_name)
 
         # get file from processing bucket
         obj = s3_process.get_object(processing_bucket, file_name)
