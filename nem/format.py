@@ -95,7 +95,6 @@ def imd_format(meter_point, channel, readings, file_name, intervel_length=15, pe
     return date, final_readings
 
 
-
 def merge_imd(all_readings, intervel_length=15, no_period=96):
     """
     keys are MeterPointID	Date
@@ -236,7 +235,109 @@ def get_30_from_15(all_readings_15min):
     return final_ones
 
 
+def merge_imd_spmdf(all_readings, intervel_length=15, no_period=96):
+    """
+    keys are MeterPointID	Date
+    """
+    final_readings = []
 
+    index = 0
+    key1 = None
+    key2 = None
+    group_by_keys = []
+
+    for row in all_readings:
+        if index == 0:
+            key1 = row[0]
+            key2 = row[1]
+            group_by_keys.append(row)
+            index+=1
+        else:
+            if key1 == row[0] and key2 == row[1]:
+                group_by_keys.append(row)
+                index+=1
+            else:
+                # do merge here
+                # reset after finish
+
+                merges = merge_group_by_keys_spmdf(group_by_keys, intervel_length, no_period)
+                # if row[0] == "VCCCKC0021":
+                #     print (merges)
+                final_readings+= merges
+
+                # reset
+                index = 0
+                key1 = row[0]
+                key2 = row[1]
+                group_by_keys.clear()
+                group_by_keys.append(row)
+                index+=1
+    if group_by_keys:
+        merges = merge_group_by_keys_spmdf(group_by_keys, intervel_length, no_period)
+        # if row[0] == "VCCCKC0021":
+        #     print (merges)
+        final_readings+= merges
+
+    return final_readings
+
+
+def merge_group_by_keys_spmdf(group_by_keys, intervel_length, no_period):
+    """
+    """
+    final_ones = []
+
+    no_groups = len(group_by_keys)/no_period
+    # TODO: check no_groups is correct or not
+
+    start_indexes = [i*no_period for i in range(int(no_groups))]
+
+    # if channel[0] == "E":
+    #     Exp_KWH = read_value 5
+    # elif channel[0] == "B":
+    #     Imp_KWH = read_value 6
+    # elif channel[0] == "K":
+    #     Imp_KVARH = read_value 8
+    # elif channel[0] == "Q":
+    #     Exp_KVARH = read_value 7
+    # else:
+    #     return date, False
+
+
+    for j in range(no_period):
+        Exp_KWHs = [float(group_by_keys[si][5]) for si in start_indexes]
+        Exp_KWH = sum(Exp_KWHs)
+
+        Imp_KWHs = [float(group_by_keys[si][6]) for si in start_indexes]
+        Imp_KWH = sum(Imp_KWHs)
+
+        Imp_KVARHs = [float(group_by_keys[si][8]) for si in start_indexes]
+        Imp_KVARH = sum(Imp_KVARHs)
+
+        Exp_KVARHs = [float(group_by_keys[si][7]) for si in start_indexes]
+        Exp_KVARH = sum(Exp_KVARHs)
+
+        Net_KWH = Exp_KWH - Imp_KWH
+        Net_KVARH = Exp_KVARH - Imp_KVARH
+        KW = Net_KWH*(60/intervel_length)
+        if Net_KWH == 0:
+            Net_KWH = KW/(60/intervel_length)
+        KVA = math.sqrt(Net_KWH*Net_KWH + Net_KVARH*Net_KVARH)*(60/intervel_length)
+        # TODO:  check < 0 here
+
+        group_by_keys[start_indexes[0]][5] = str(Exp_KWH)
+        group_by_keys[start_indexes[0]][6] = str(Imp_KWH)
+        group_by_keys[start_indexes[0]][8] = str(Imp_KVARH)
+        group_by_keys[start_indexes[0]][7] = str(Exp_KVARH)
+
+        group_by_keys[start_indexes[0]][3] = str(Net_KWH)
+        group_by_keys[start_indexes[0]][4] = str(Net_KVARH)
+        group_by_keys[start_indexes[0]][9] = str(KW)
+        # group_by_keys[start_indexes[0]][3] = Net_KWH
+        group_by_keys[start_indexes[0]][10] = str(KVA)
+
+        final_ones.append(group_by_keys[start_indexes[0]])
+        start_indexes = [i+1 for i in start_indexes]
+    return final_ones
 
 
 

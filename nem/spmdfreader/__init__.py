@@ -1,7 +1,11 @@
+import math
+import operator
 from io import StringIO
 
+
+import numpy as np
 import pandas as pd
-import math
+
 
 import format
 import helpers
@@ -134,10 +138,56 @@ def process_spmdf(s, source_file_id, file_name, header_end_text=None, footer_sta
         print (error_text)
         return False
 
+    # ----
+    no_rows = df["IntervalLength"].count()
+
+    empty_series = pd.Series(np.array([""]*no_rows))
+    if "MeterRef" not in fields:
+        MeterRef = empty_series
+    else:
+        MeterRef = df["MeterRef"]
+
+    if "NMI" not in fields:
+        NMI = empty_series
+    else:
+        NMI = df["NMI"]
+
+    if "StreamRef" not in fields:
+        StreamRef = empty_series
+    else:
+        StreamRef = df["StreamRef"]
+
+    if "Date" not in fields:
+        Date = empty_series
+    else:
+        Date = df["Date"]
+
+    if "Timestamp" not in fields:
+        Timestamp = empty_series
+    else:
+        Timestamp = df["Timestamp"]
+
+    Exp_KVARH = df["Exp_KVARH"]
+    Imp_KVARH = df["Imp_KVARH"]
+    Exp_KWH	= df["Exp_KWH"]
+    Imp_KWH = df["Imp_KWH"]
+    IntervalLength = df["IntervalLength"]
+    QualityCode = df["QualityCode"]
+    file_id = df['source_file_id']
+
+    df = pd.concat([MeterRef, NMI, StreamRef, Date, Timestamp, Exp_KVARH,
+                    Imp_KVARH, Exp_KWH, IntervalLength, QualityCode, file_id], axis=1)
+
+
+    # ----
     readings_15min, readings_30min = read_spmdf(df.values.tolist())
 
-    return readings_15min, readings_30min
+    readings_15min = sorted(readings_15min, key = operator.itemgetter(0, 1))
+    readings_30min = sorted(readings_30min, key = operator.itemgetter(0, 1))
 
+    readings_15min = format.merge_imd_spmdf(readings_15min, 15, 96)
+    readings_30min = format.merge_imd_spmdf(readings_30min, 15*2, 96/2)
+    return readings_15min, readings_30min
 
 
 def read_spmdf(all_data):
@@ -148,28 +198,39 @@ def read_spmdf(all_data):
 
     period = 1
     for row in all_data:
-        intervel_length = int(row[8])
+        # [MeterRef, NMI, StreamRef, Date, Timestamp, Exp_KVARH, Imp_KVARH, Exp_KWH, IntervalLength, QualityCode, file_id]
 
-        Exp_KVARH = float(row[4])
-        Imp_KVARH = float(row[5])
-        Exp_KWH	= float(row[6])
-        Imp_KWH = float(row[7])
+        Exp_KVARH = row[5]
+        Imp_KVARH = row[6]
+        Exp_KWH	= row[7]
 
-        Net_KWH = Exp_KWH - Imp_KWH
-        Net_KVARH = Exp_KVARH - Imp_KVARH
-        KW = Net_KWH*(60/intervel_length)
-        if Net_KWH == 0:
-            Net_KWH = KW/(60/intervel_length)
-        KVA = math.sqrt(Net_KWH*Net_KWH + Net_KVARH*Net_KVARH)*(60/intervel_length)
-
+        Imp_KWH = 0
+        Net_KWH = 0
+        Net_KVARH = 0
+        KW = 0
+        Net_KWH = 0
+        KVA = 0
         KVA15 = 0
         KW15 = 0
 
-        meter_point = row[0]
-        date = row[2]
+        intervel_length = row[-3]
         file_name = row[-1]
         quality_method = row[-2]
         quality_number = None
+
+        meter_point = row[0]
+
+        # if row[0] == "" and row[1] != "" and row[2] != "":
+        #     meter_point = str(row[1]) + "-" + str(row[2])
+
+        if meter_point == "":
+            meter_point = row[1]
+
+        date = row[3]
+
+        if row[3] == "":
+            date = row[4]
+
 
         PeriodID = period
 
@@ -194,3 +255,27 @@ def read_spmdf(all_data):
                 period = 1
 
     return readings_15min, readings_30min
+
+
+
+"""
+if ('Timestamp' in fields and 'Date' in fields) or ('PeriodID' in fields and 'Time' in fields):
+        error_text = "Duplicate time interval information specified. Needs either Timestamp+TimestampType, Date+PeriodID, or Date+Time"
+        logger.error(error_text)
+        DataDogAPI.Event.create(title="Duplicate time interval information:", text=error_text, alert_type="error",tags=tags)
+        return (False,0)
+
+-- Everything should have a MeterRef
+	UPDATE SPMDF_Staging SET MeterRef = NMI+'-'+StreamRef
+	WHERE ISNULL(MeterRef,'') = '' AND ISNULL(NMI,'') <> '' AND ISNULL(StreamRef,'') <> '' AND source_file_id = @sfid
+
+	UPDATE SPMDF_Staging SET MeterRef = NMI
+	WHERE ISNULL(MeterRef,'') = '' AND ISNULL(NMI,'') <> '' AND ISNULL(StreamRef,'') = '' AND source_file_id = @sfid
+
+    	-- Get Date, PeriodID for each record
+	UPDATE SPMDF_Staging SET TimestampType = 'PS', [Timestamp] = DATEADD(mi, -IntervalLength, [Timestamp])
+	WHERE TimestampType = 'PE' AND [Timestamp] IS NOT NULL AND source_file_id = @sfid
+
+	UPDATE SPMDF_Staging SET [Date] = CONVERT(date,[Timestamp]), PeriodID = 1 + DATEDIFF(mi, CONVERT(date,[Timestamp]), [Timestamp])/IntervalLength
+	WHERE [Timestamp] IS NOT NULL AND [Date] IS NULL AND PeriodID IS NULL AND source_file_id = @sfid
+"""

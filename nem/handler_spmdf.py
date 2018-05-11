@@ -82,13 +82,12 @@ def handler(event, context):
 
 
 def test_local():
-    file_path = "examples_input/rawdata (89)0.csv"
-    file_name = "rawdata (89)0.csv"
+    file_path = "examples_input/rawdata (89).csv"
+    file_name = "rawdata (89).csv"
     source = "BOC"
 
     match_spmdf_configs = [key for key in SPMDF_CONFIG if SPMDF_CONFIG[key]["source"]
                            == source and helpers.check_spmdf_pattern(file_name, SPMDF_CONFIG[key]["pattern"])]
-    print (match_spmdf_configs)
 
     if len(match_spmdf_configs) != 1:
         raise Exception("match more than one SPMDF_CONFIG or no match")
@@ -98,8 +97,7 @@ def test_local():
     f = open(file_path,'rt')
     s = f.read()
     f.close()
-
     process_file(s, file_name, local=True, **params)
 
 
-# test_local()
+test_local()
