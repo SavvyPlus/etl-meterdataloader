@@ -47,8 +47,17 @@ SPMDF_CONFIG = {
                    'REPORT_DATE':'Date', 'REPORT_TIME':'Time', 'KVARH_CON':'Exp_KVARH', 'KVARH_GEN':'Imp_KVARH',
                    'KWH_CON':'Exp_KWH', 'KWH_GEN':'Imp_KWH'}}
     },
+    "TasWaterRawData*.csv": {
+        "source": "TasWater",
+        "pattern": "RawData*.csv",
+        "params": {'usecols':['NMI','REPORT_DATE','REPORT_TIME','KVARH_CON','KVARH_GEN','KWH_CON','KWH_GEN'],
+                   'parse_dates':['REPORT_DATE'],'dayfirst':True,'header':0,'fixed_column_vals':
+                   {'IntervalLength':15,'TimestampType':'PE','QualityCode':'X'},'map_col_names':{'NMI':'MeterRef',
+                   'REPORT_DATE':'Date', 'REPORT_TIME':'Time', 'KVARH_CON':'Exp_KVARH', 'KVARH_GEN':'Imp_KVARH',
+                   'KWH_CON':'Exp_KWH', 'KWH_GEN':'Imp_KWH'}}
+    },
     "TasDoEDOErawdata*.csv": {
-        "source": "TasDoEDOE",
+        "source": "TasDoE",
         "pattern": "DOE rawdata*.csv",
         "params": {'usecols':['NMI','REPORT_DATE','REPORT_TIME','KVARH_CON','KVARH_GEN','KWH_CON','KWH_GEN'],
                    'parse_dates':['REPORT_DATE'],'dayfirst':True,'header':0,'fixed_column_vals':

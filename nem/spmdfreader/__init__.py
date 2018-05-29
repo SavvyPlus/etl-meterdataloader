@@ -25,13 +25,13 @@ def process_spmdf(s, source_file_id, file_name, header_end_text=None, footer_sta
     if header_end_text is not None and start_index<len(header_end_text):    # note: find returns -1 if string not found
         error_text = "The text specified to indicate the end of the header is not found"
         print (error_text)
-        return False
+        return False, False
     else:
         end_index = len(s) if footer_start_text is None else start_index + s[start_index:].find(footer_start_text)
         if end_index<start_index:
             error_text = "The text specified to indicate the beginning of the footer is not found"
             print (error_text)
-            return False
+            return False, False
 
     csv_str = s[start_index:end_index]
 
@@ -60,83 +60,85 @@ def process_spmdf(s, source_file_id, file_name, header_end_text=None, footer_sta
         bad = fields - set(valid_fields)
         error_text = 'Invalid fields names encountered reading file (field names are case-sensitive): ' + ','.join(bad)
         print (error_text)
-        return False
+        return False, False
 
     if not 'IntervalLength' in fields:
         error_text = "The compulsory field IntervalLength is missing"
         print (error_text)
-        return False
+        return False, False
 
     if not (fields.issuperset(['Timestamp','TimestampType']) or fields.issuperset(['Date','PeriodID']) or fields.issuperset(['Date','Time','TimestampType'])):
         error_text = "Time Interval incorrectly specified. Needs either Timestamp+TimestampType, Date+PeriodID, or Date+Time"
         print (error_text)
-        return False
+        return False, False
 
     # TODO: check that both PeriodID and Time are not supplied
     if ('Timestamp' in fields and 'Date' in fields) or ('PeriodID' in fields and 'Time' in fields):
         error_text = "Duplicate time interval information specified. Needs either Timestamp+TimestampType, Date+PeriodID, or Date+Time"
         print (error_text)
-        return False
+        return False, False
 
     if not (fields.issuperset(['MeterRef']) or fields.issuperset(['NMI','StreamRef'])):
         error_text = "Meter information is incorrectly specified. Needs either MeterRef or NMI+StreamRef"
         print (error_text)
-        return False
+        return False, False
 
     if 'MeterRef' in fields and 'NMI' in fields:
         error_text = "Duplicate meter information specified. Needs either MeterRef only or NMI+StreamRef"
         print (error_text)
-        return False
+        return False, False
 
     # ensure that there is at least one value field
     if len(fields.intersection(['Net_KWH','Net_KVARH','Exp_KWH','Imp_KWH','Exp_KVARH','Imp_KVARH', 'KW', 'KVA']))==0:
         error_text = "There must be at least one value field included in the file"
         print (error_text)
-        return False
+        return False, False
 
     # validation checks
     if not set(df['IntervalLength']).issubset(set([15,30])):
         error_text = "IntervalLength must be integer with values 15 and 30"
         print (error_text)
-        return False
+        return False, False
     if 'QualityCode' in fields and not set(df['QualityCode']).issubset(set([None,'A','E','F','I','S','X'])):
         error_text = "QualityCode must be A,E,F,I,S or X. Found " + ','.join(set(df['QualityCode']) - set([None,'A','E','F','I','S','X']))
         print (error_text)
-        return False
+        return False, False
 
     df['source_file_id'] = source_file_id
 
     # truncates NMI or MeterRef to first 10 characters
     if 'NMI' in fields and truncateNMI:
-        df['NMI'] = map(lambda x: x[0:10], df['NMI'])
+        # df['NMI'] = map(lambda x: x[0:10], df['NMI'])
+        df['NMI'] = df['NMI'].apply(lambda x: x[0:10])
     if 'MeterRef' in fields and truncateNMI:
-        df['MeterRef'] = map(lambda x: x[0:10], df['MeterRef'])
+        # df['MeterRef'] = map(lambda x: x[0:10], df['MeterRef'])
+        df['MeterRef'] = df['MeterRef'].apply(lambda x: x[0:10])
 
     # field-level validation
     if 'Imp_KWH' in fields and min(df['Imp_KWH']) < 0:
         error_text = "Negative Imp_KWH values detected. Consider flip_signs argument"
         print (error_text)
-        return False
+        return False, False
 
     if 'Exp_KWH' in fields and min(df['Exp_KWH']) < 0:
         error_text = "Negative Exp_KWH values detected. Consider flip_signs argument"
         print (error_text)
-        return False
+        return False, False
 
     if 'Imp_KVARH' in fields and min(df['Imp_KVARH']) < 0:
         error_text = "Negative Imp_KVARH values detected. Consider flip_signs argument"
         print (error_text)
-        return False
+        return False, False
 
     if 'Exp_KVARH' in fields and min(df['Exp_KVARH']) < 0:
         error_text = "Negative Exp_KVARH values detected. Consider flip_signs argument"
         print (error_text)
-        return False
+        return False, False
 
     if 'KVA' in fields and min(df['KVA']) < 0:
         error_text = "Negative KVA values detected"
         print (error_text)
-        return False
+        return False, False
 
     # ----
     no_rows = df["IntervalLength"].count()
@@ -182,17 +184,20 @@ def process_spmdf(s, source_file_id, file_name, header_end_text=None, footer_sta
     # ----
     readings_15min, readings_30min = read_spmdf(df.values.tolist())
 
-    readings_15min = sorted(readings_15min, key = operator.itemgetter(0, 1))
-    readings_30min = sorted(readings_30min, key = operator.itemgetter(0, 1))
+    # readings_15min = sorted(readings_15min, key = operator.itemgetter(0, 1))
+    # readings_30min = sorted(readings_30min, key = operator.itemgetter(0, 1))
 
     readings_15min = format.merge_imd_spmdf(readings_15min, 15, 96)
     readings_30min = format.merge_imd_spmdf(readings_30min, 15*2, int(96/2))
+
     return readings_15min, readings_30min
 
 
 def read_spmdf(all_data):
     """
     """
+    # readings_15min = sorted(readings_15min, key = operator.itemgetter(0, 1))
+    all_data = sorted(all_data, key = operator.itemgetter(0,1))
     readings_15min = []
     readings_30min = []
 

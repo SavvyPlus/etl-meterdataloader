@@ -5,7 +5,8 @@
 # @Last modified time: 2018-04-16T17:14:21+07:00
 
 
-
+import sys
+import traceback
 import math
 # import pandas as pd
 
@@ -211,7 +212,8 @@ def get_30_from_15(all_readings_15min):
         try:
             first = all_readings_15min[i]
             second = all_readings_15min[i+1]
-            if (first[0] == second[0]) and (first[1] == second[1]) and (int(first[2])+1 == int(second[2])):
+            # if (first[0] == second[0]) and (first[1] == second[1]) and (int(first[2])+1 == int(second[2])):
+            if (first[0] == second[0]) and (int(first[2])+1 == int(second[2])):
 
                 first[3] = float(first[3]) + float(second[3])
                 first[4] = float(first[4]) + float(second[4])
@@ -230,8 +232,8 @@ def get_30_from_15(all_readings_15min):
                 first[-1] = 1 # TODO: check QualityNumber
                 first = [str(fi) for fi in first]
                 final_ones.append(first)
-        except IndexError:
-            break
+        except IndexError as e:
+            pass
     return final_ones
 
 
@@ -244,16 +246,18 @@ def merge_imd_spmdf(all_readings, intervel_length=15, no_period=96):
     index = 0
     key1 = None
     key2 = None
+    key3 = None
     group_by_keys = []
 
     for row in all_readings:
         if index == 0:
             key1 = row[0]
             key2 = row[1]
+            key3 = row[2]
             group_by_keys.append(row)
             index+=1
         else:
-            if key1 == row[0] and key2 == row[1]:
+            if key1 == row[0] and key2 == row[1] and key3 == row[2]:
                 group_by_keys.append(row)
                 index+=1
             else:
@@ -269,6 +273,8 @@ def merge_imd_spmdf(all_readings, intervel_length=15, no_period=96):
                 index = 0
                 key1 = row[0]
                 key2 = row[1]
+                key3 = row[2]
+
                 group_by_keys.clear()
                 group_by_keys.append(row)
                 index+=1
