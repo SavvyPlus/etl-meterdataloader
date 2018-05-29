@@ -23,8 +23,8 @@ def process_file(s, file_name, local=True, **kwargs):
     """
     readings_15min, readings_30min = spmdfreader.process_spmdf(s, file_name, file_name, **kwargs)
 
-    file_path_15mins = "output/spmdf_15_mins.csv"
-    file_path_30mins = "output/spmdf_30_mins.csv"
+    file_path_15mins = "../output/spmdf_15_mins.csv"
+    file_path_30mins = "../output/spmdf_30_mins.csv"
 
     if local is False:
         file_path_15mins = None
@@ -82,9 +82,9 @@ def handler(event, context):
 
 
 def test_local():
-    file_path = "examples_input/rawdata (89).csv"
-    file_name = "rawdata (89).csv"
-    source = "BOC"
+    file_path = "examples_input/SP_2001000122.csv"
+    file_name = "SP_2001000122.csv"
+    source = "Ad-hoc"
 
     match_spmdf_configs = [key for key in SPMDF_CONFIG if SPMDF_CONFIG[key]["source"]
                            == source and helpers.check_spmdf_pattern(file_name, SPMDF_CONFIG[key]["pattern"])]
@@ -100,4 +100,24 @@ def test_local():
     process_file(s, file_name, local=True, **params)
 
 
-test_local()
+# test_local()
+
+
+# key = "Goanna/MeterDataMeterDataExtract-Interval.csv"
+#
+# event = {
+#     "Records": [
+#         {
+#             "s3": {
+#                 "object": {
+#                     "key": key
+#                 },
+#                 "bucket": {
+#                     "name": input_bucket
+#                 }
+#             }
+#         }
+#     ]
+# }
+#
+# handler(event, None)

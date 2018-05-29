@@ -291,6 +291,9 @@ def merge_group_by_keys_spmdf(group_by_keys, intervel_length, no_period):
 
     start_indexes = [i*no_period for i in range(int(no_groups))]
 
+    if not start_indexes:
+        start_indexes = [0]
+
     # if channel[0] == "E":
     #     Exp_KWH = read_value 5
     # elif channel[0] == "B":
@@ -336,7 +339,10 @@ def merge_group_by_keys_spmdf(group_by_keys, intervel_length, no_period):
         group_by_keys[start_indexes[0]][10] = str(KVA)
 
         final_ones.append(group_by_keys[start_indexes[0]])
+        if len(start_indexes) == 1:
+            break
         start_indexes = [i+1 for i in start_indexes]
+
     return final_ones
 
 

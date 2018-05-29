@@ -186,7 +186,7 @@ def process_spmdf(s, source_file_id, file_name, header_end_text=None, footer_sta
     readings_30min = sorted(readings_30min, key = operator.itemgetter(0, 1))
 
     readings_15min = format.merge_imd_spmdf(readings_15min, 15, 96)
-    readings_30min = format.merge_imd_spmdf(readings_30min, 15*2, 96/2)
+    readings_30min = format.merge_imd_spmdf(readings_30min, 15*2, int(96/2))
     return readings_15min, readings_30min
 
 
