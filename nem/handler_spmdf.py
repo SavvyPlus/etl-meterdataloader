@@ -73,9 +73,13 @@ def partition_imd(file_name, date):
     """
     """
     date = parse_date(date)
-    year, month, day = date.split("-")
-    key = "year=%s/month=%s/day=%s/%s" % (year, month, day, file_name)
-    return key
+    if date == "":
+        key = "%s" % (file_name)
+        return key
+    else:
+        year, month, day = date.split("-")
+        key = "year=%s/month=%s/day=%s/%s" % (year, month, day, file_name)
+        return key
 
 
 def handler(event, context):
