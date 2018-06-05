@@ -27,7 +27,10 @@ def imd_format(meter_point, channel, readings, file_name, intervel_length=15, pe
     first_read = readings[0]
     date = first_read.t_start.date().strftime("%Y-%m-%d")
     uom = first_read.uom
-    quality_code = first_read.quality_method
+    try:
+        quality_code = first_read.quality_method[0]
+    except:
+        quality_code = 'No'
     # check invalid data
     if quality_code not in ['A','E','F','S','X']:
         return date, False

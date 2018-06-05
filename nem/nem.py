@@ -70,11 +70,11 @@ def process_file(csv_reader, file_name, local=True):
 
 
     if local:
-        helpers.create_csv(all_readings_15min, config.IMD_HEADER, file_path="output/IMD_15_mins.csv")
+        helpers.create_csv(all_readings_15min, config.IMD_HEADER, file_path="../output/IMD_15_mins.csv")
         readings_30_from_15 = format.get_30_from_15(all_readings_15min)
         if readings_30_from_15:
             all_readings_30min = readings_30_from_15 + all_readings_30min
-        helpers.create_csv(all_readings_30min, config.IMD_HEADER, file_path="output/IMD_30_mins.csv")
+        helpers.create_csv(all_readings_30min, config.IMD_HEADER, file_path="../output/IMD_30_mins.csv")
     else:
         # return date, helpers.create_csv(all_readings, config.IMD_HEADER)
         reading_15min_byte = helpers.create_csv(all_readings_15min, config.IMD_HEADER)
@@ -138,4 +138,4 @@ def handler(event, context):
 
 
 
-# test_local()
+test_local()
