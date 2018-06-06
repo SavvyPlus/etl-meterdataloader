@@ -91,7 +91,7 @@ def imd_format(meter_point, channel, readings, file_name, intervel_length=15, pe
         #           reading.t_end.strftime("%Y-%m-%d %H:%M:%S"), channel, intervel_length]
         record = [meter_point, date, next_period, Net_KWH, Net_KVARH, Exp_KWH, Imp_KWH, Exp_KVARH,
                   Imp_KVARH, KW, KVA, 0.0, 0.0, file_name, helpers.get_time_now(format="%Y-%m-%d %H:%M:%S"),
-                  reading.quality_method, quality_number]
+                  reading.quality_method[0], quality_number]
         record = [str(i) for i in record]
         final_readings.append(record)
         next_period+=1

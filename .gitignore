@@ -25,3 +25,5 @@ dist/
 
 examples_input/
 output/
+
+tests.py

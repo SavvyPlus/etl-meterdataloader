@@ -27,8 +27,7 @@ def delete_object(bucket, key):
     return s3.delete_object(Bucket=bucket, Key=key)
     print("Deleted file [%s] in [%s]" % (key, bucket))
 
-def s3_key(ymd, filename):
+def s3_key(ymd, filename, athena_folder, period_type="imd_15min"):
     parts = ymd.split("-")
-    key = "year=%s/month=%s/day=%s/%s" % (parts[0], parts[1], parts[2], filename)
+    key = "%s/%s/year=%s/month=%s/day=%s/%s" % (athena_folder, period_type, parts[0], parts[1], parts[2], filename)
     return key
-#

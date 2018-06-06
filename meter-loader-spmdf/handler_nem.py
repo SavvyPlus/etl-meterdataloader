@@ -19,9 +19,10 @@ import nemreader as nr
 # imd_15_bucket = 'test-nem12.imd-15.prod'
 # imd_30_bucket = 'test-nem12.imd-30.prod'
 
-
+meter_bucket = "meterloader.poc"
 processing_folder = "processing"
 done_folder = "done"
+error_folder = "error"
 athena_folder = "athena"
 imd_15_folder = "imd_15min"
 imd_30_folder = "imd_30min"
@@ -94,49 +95,35 @@ def handler(event, context):
     """
     try:
         print ("Object added to: [%s]" % (event['Records'][0]['s3']['bucket']['name'],))
-        file_name = event['Records'][0]['s3']['object']['key'].split('/')[-1]
+        key_name = event['Records'][0]['s3']['object']['key']
+        file_name = key_name.split('/')[-1]
         file_name = helpers.unquote_url(file_name)
+
+        processing_key = "%s/%s" % (processing_folder, file_name)
+        done_key = "%s/%s" % (done_folder, file_name)
+        error_key = "%s/%s" % (error_folder, file_name)
         # move to PROCESSING_BUCKET
-        s3_process.copy_file(input_bucket, file_name, processing_bucket, file_name)
+        s3_process.move_file(meter_bucket, key_name, meter_bucket, processing_key)
 
         # get file from processing bucket
-        obj = s3_process.get_object(processing_bucket, file_name)
+        obj = s3_process.get_object(meter_bucket, processing_key)
         data = obj['Body'].read().decode('utf-8', 'ignore')
         lines = data.splitlines()
         csv_reader = csv.reader(lines, delimiter=',')
         # date, bytes_imd_csv = process_file(csv_reader, file_name, local=False)
         result = process_file(csv_reader, file_name, local=False)
-        dst_key = s3_process.s3_key(result[0],"IMD_15_min_"+file_name)
-        s3_process.put_file(imd_15_bucket, dst_key, result[1])
 
-        dst_key = s3_process.s3_key(result[0],"IMD_30_min_"+file_name)
-        s3_process.put_file(imd_30_bucket, dst_key, result[2])
+        dst_15min_key = s3_process.s3_key(result[0], file_name, athena_folder, imd_15_folder)
+        s3_process.put_file(meter_bucket, dst_15min_key, result[1])
+
+        dst_30min_key = s3_process.s3_key(result[0], file_name, athena_folder, imd_30_folder)
+        s3_process.put_file(meter_bucket, dst_30min_key, result[2])
 
         # move to NEM12_DONE_BUCKET
-        s3_process.move_file(processing_bucket, file_name, done_bucket, file_name)
+        s3_process.move_file(meter_bucket, processing_key, meter_bucket, done_key)
         print ("Finish process file: %s" % (file_name))
 
     except Exception as e:
         print ("Error: %s" % (str(e)))
-
-
-
-def test_local():
-    """
-    create a CSV file
-    """
-    # file_name = "examples_input/NEM12#17092200001000000#GLOBALM#SAVBELGRAV.csv"
-    file_name = "examples_input/NEM12#16042100594000000#GLOBALM#SPICK.csv"
-    with open(file_name) as nmi_file:
-        reader = csv.reader(nmi_file, delimiter=',')
-        process_file(reader, file_name)
-    # m = nr.read_nem_file(file_name)
-    # print('Header:', m.header)
-    # print('Transactions:', m.transactions)
-    # for nmi in m.readings:
-    #     for channel in m.readings[nmi]:
-    #         print(nmi, 'Channel', channel)
-    #         for reading in m.readings[nmi][channel][:]:
-    #             print('', reading)
-
-# test_local()
+        error_key = "%s/%s" % (error_folder, file_name)
+        s3_process.move_file(meter_bucket, key_name, meter_bucket, error_key)
