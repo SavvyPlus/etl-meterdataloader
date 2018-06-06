@@ -13,17 +13,19 @@ import helpers
 import s3_process
 import nemreader as nr
 
-input_bucket = 'test-nem12.input'
-processing_bucket = 'test-nem12.processing'
-done_bucket = 'test-nem12.done'
-imd_15_bucket = 'test-nem12.imd-15.prod'
-imd_30_bucket = 'test-nem12.imd-30.prod'
+# input_bucket = 'test-nem12.input'
+# processing_bucket = 'test-nem12.processing'
+# done_bucket = 'test-nem12.done'
+# imd_15_bucket = 'test-nem12.imd-15.prod'
+# imd_30_bucket = 'test-nem12.imd-30.prod'
 
 
-# input_bucket = 'generic-nem.input'
-# processing_bucket = 'generic-nem.processing'
-# done_bucket = 'generic-nem.done'
-# nem_bucket = 'generic-nem-bucket'
+processing_folder = "processing"
+done_folder = "done"
+athena_folder = "athena"
+imd_15_folder = "imd_15min"
+imd_30_folder = "imd_30min"
+
 
 def process_file(csv_reader, file_name, local=True):
     """
@@ -85,25 +87,6 @@ def process_file(csv_reader, file_name, local=True):
         return date, reading_15min_byte, reading_30min_byte
 
 
-
-def test_local():
-    """
-    create a CSV file
-    """
-    # file_name = "examples_input/NEM12#17092200001000000#GLOBALM#SAVBELGRAV.csv"
-    file_name = "examples_input/NEM12#16042100594000000#GLOBALM#SPICK.csv"
-    with open(file_name) as nmi_file:
-        reader = csv.reader(nmi_file, delimiter=',')
-        process_file(reader, file_name)
-    # m = nr.read_nem_file(file_name)
-    # print('Header:', m.header)
-    # print('Transactions:', m.transactions)
-    # for nmi in m.readings:
-    #     for channel in m.readings[nmi]:
-    #         print(nmi, 'Channel', channel)
-    #         for reading in m.readings[nmi][channel][:]:
-    #             print('', reading)
-
 def handler(event, context):
     """
     upload file NEM12 to NEM12_INPUT_BUCKET
@@ -138,4 +121,22 @@ def handler(event, context):
 
 
 
-test_local()
+def test_local():
+    """
+    create a CSV file
+    """
+    # file_name = "examples_input/NEM12#17092200001000000#GLOBALM#SAVBELGRAV.csv"
+    file_name = "examples_input/NEM12#16042100594000000#GLOBALM#SPICK.csv"
+    with open(file_name) as nmi_file:
+        reader = csv.reader(nmi_file, delimiter=',')
+        process_file(reader, file_name)
+    # m = nr.read_nem_file(file_name)
+    # print('Header:', m.header)
+    # print('Transactions:', m.transactions)
+    # for nmi in m.readings:
+    #     for channel in m.readings[nmi]:
+    #         print(nmi, 'Channel', channel)
+    #         for reading in m.readings[nmi][channel][:]:
+    #             print('', reading)
+
+# test_local()

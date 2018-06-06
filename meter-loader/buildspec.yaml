@@ -3,10 +3,10 @@ version: 0.2
 phases:
   install:
     commands:
-      - pip install -r nem/requirements.txt -t nem
+      - pip install -r meter-loader/requirements.txt -t meter-loader
 
 artifacts:
-  base-directory: nem
+  base-directory: meter-loader
   files:
     - '**/*'
   type: zip
