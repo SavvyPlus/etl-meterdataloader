@@ -1,4 +1,5 @@
 SPMDF_CONFIG = {
+    # pass
     "BOCrawdata*.csv" : {
         "source": "BOC",
         "pattern": "rawdata*.csv",
@@ -9,15 +10,18 @@ SPMDF_CONFIG = {
                     'KVARH_CON':'Exp_KVARH', 'KVARH_GEN':'Imp_KVARH', 'KWH_CON':'Exp_KWH', 'KWH_GEN':'Imp_KWH'},
                     'flip_signs':['Imp_KWH']}
     },
-    "TasDoErawdata*.csv": {
-        "source": "TasDoE",
-        "pattern": "rawdata*.csv",
-        "params": {'usecols':['NMI','METER_POINT','REPORT_DATE','REPORT_TIME','KVARH_CON','KVARH_GEN','KWH_CON','KWH_GEN'],
-                   'parse_dates':['REPORT_DATE'],'dayfirst':True,'header':0,'fixed_column_vals':
-                   {'IntervalLength':15,'TimestampType':'PE','QualityCode':'X'},'map_col_names':{'REPORT_DATE':'Date',
-                   'REPORT_TIME':'Time', 'METER_POINT':'StreamRef', 'KVARH_CON':'Exp_KVARH', 'KVARH_GEN':'Imp_KVARH',
-                   'KWH_CON':'Exp_KWH', 'KWH_GEN':'Imp_KWH'}, 'flip_signs':['Imp_KWH']}
-    },
+
+    # "TasDoErawdata*.csv": {
+    #     "source": "TasDoE",
+    #     "pattern": "rawdata*.csv",
+    #     "params": {'usecols':['NMI','METER_POINT','REPORT_DATE','REPORT_TIME','KVARH_CON','KVARH_GEN','KWH_CON','KWH_GEN'],
+    #                'parse_dates':['REPORT_DATE'],'dayfirst':True,'header':0,'fixed_column_vals':
+    #                {'IntervalLength':15,'TimestampType':'PE','QualityCode':'X'},'map_col_names':{'REPORT_DATE':'Date',
+    #                'REPORT_TIME':'Time', 'METER_POINT':'StreamRef', 'KVARH_CON':'Exp_KVARH', 'KVARH_GEN':'Imp_KVARH',
+    #                'KWH_CON':'Exp_KWH', 'KWH_GEN':'Imp_KWH'}, 'flip_signs':['Imp_KWH']}
+    # },
+
+    # The text specified to indicate the end of the header is not found
     "TasWaterMeter*.csv": {
         "source": "TasWater",
         "pattern": "Meter*.csv",
@@ -28,6 +32,7 @@ SPMDF_CONFIG = {
                    'Q (Usage kvarh)':'Exp_KVARH', 'K (Generation kvarh)':'Imp_KVARH'}, 'truncateNMI':True,
                    'encoding':'ascii','header_end_text':'\xef\xbb\xbf'}
     },
+    # pass
     "GoannaMeter*.csv": {
         "source": "Goanna",
         "pattern": "Meter*.csv",
@@ -38,6 +43,8 @@ SPMDF_CONFIG = {
                    'B (Generation kWh)':'Imp_KWH', 'Q (Usage kvarh)':'Exp_KVARH', 'K (Generation kvarh)':'Imp_KVARH'},
                    'truncateNMI':True}
     },
+
+    # pass
     "TasWaterrawdata*.csv": {
         "source": "TasWater",
         "pattern": "rawdata*.csv",
@@ -47,6 +54,8 @@ SPMDF_CONFIG = {
                    'REPORT_DATE':'Date', 'REPORT_TIME':'Time', 'KVARH_CON':'Exp_KVARH', 'KVARH_GEN':'Imp_KVARH',
                    'KWH_CON':'Exp_KWH', 'KWH_GEN':'Imp_KWH'}}
     },
+    # added this custom to test RawData*.csv
+    # pass
     "TasWaterRawData*.csv": {
         "source": "TasWater",
         "pattern": "RawData*.csv",
@@ -56,6 +65,7 @@ SPMDF_CONFIG = {
                    'REPORT_DATE':'Date', 'REPORT_TIME':'Time', 'KVARH_CON':'Exp_KVARH', 'KVARH_GEN':'Imp_KVARH',
                    'KWH_CON':'Exp_KWH', 'KWH_GEN':'Imp_KWH'}}
     },
+    # pass
     "TasDoEDOErawdata*.csv": {
         "source": "TasDoE",
         "pattern": "DOE rawdata*.csv",
@@ -65,11 +75,15 @@ SPMDF_CONFIG = {
                    {'NMI':'MeterRef', 'REPORT_DATE':'Date', 'REPORT_TIME':'Time', 'KVARH_CON':'Exp_KVARH',
                    'KVARH_GEN':'Imp_KVARH', 'KWH_CON':'Exp_KWH', 'KWH_GEN':'Imp_KWH'}}
     },
+
+    # pass
     "Ad-hocSP*.csv": {
         "source": "Ad-hoc",
         "pattern": "SP*.csv",
         "params": {'parse_dates':['Timestamp'],'dayfirst':True}
     },
+
+    # pass
     "TasDoErawdata*.csv": {
         "source": "TasDoE",
         "pattern": "rawdata*.csv",
@@ -79,6 +93,8 @@ SPMDF_CONFIG = {
                    'REPORT_TIME':'Time', 'METER_POINT':'StreamRef', 'KVARH_CON':'Exp_KVARH', 'KVARH_GEN':'Imp_KVARH',
                    'KWH_CON':'Exp_KWH', 'KWH_GEN':'Imp_KWH'}}
     },
+
+    # The text specified to indicate the end of the header is not found
     "Ad-hocMeter*.csv": {
         "source": "Ad-hoc",
         "pattern": "Meter*.csv",

@@ -20,6 +20,7 @@ def process_spmdf(s, source_file_id, file_name, header_end_text=None, footer_sta
     s = f.read()
     f.close()
     """
+    # print (header_end_text)
     start_index = 0 if header_end_text is None else s.find(header_end_text)+len(header_end_text)
 
     if header_end_text is not None and start_index<len(header_end_text):    # note: find returns -1 if string not found

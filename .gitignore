@@ -27,3 +27,6 @@ examples_input/
 output/
 
 tests.py
+
+nem_tests.py
+spmdf_tests.py
