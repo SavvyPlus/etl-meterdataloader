@@ -1,5 +1,7 @@
 import boto3
 
+import helpers
+
 s3 = boto3.client('s3')
 
 
@@ -31,3 +33,17 @@ def s3_key(ymd, filename, athena_folder, period_type="imd_15min"):
     parts = ymd.split("-")
     key = "%s/%s/year=%s/month=%s/day=%s/%s" % (athena_folder, period_type, parts[0], parts[1], parts[2], filename)
     return key
+
+
+def partition_imd(file_name, date, athena_folder, period_type="imd_15min"):
+    """
+    """
+    date = helpers.parse_date(date)
+    if date == "":
+        key = "%s" % (file_name)
+        key = "%s/%s/%s" % (athena_folder, period_type, file_name)
+        return key
+    else:
+        year, month, day = date.split("-")
+        key = "%s/%s/year=%s/month=%s/day=%s/%s" % (athena_folder, period_type, year, month, day, file_name)
+        return key

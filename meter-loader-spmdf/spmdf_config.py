@@ -22,6 +22,7 @@ SPMDF_CONFIG = {
     # },
 
     # The text specified to indicate the end of the header is not found
+    # pass when remove "header_end_text" value
     "TasWaterMeter*.csv": {
         "source": "TasWater",
         "pattern": "Meter*.csv",
@@ -30,7 +31,7 @@ SPMDF_CONFIG = {
                    {'IntervalLength':15,'TimestampType':'PS'},'map_col_names':{'NMI':'MeterRef','Quality':'QualityCode',
                    'ReadingDateTime':'Timestamp', 'E (Usage kWh)':'Exp_KWH', 'B (Generation kWh)':'Imp_KWH',
                    'Q (Usage kvarh)':'Exp_KVARH', 'K (Generation kvarh)':'Imp_KVARH'}, 'truncateNMI':True,
-                   'encoding':'ascii','header_end_text':'\xef\xbb\xbf'}
+                   'encoding':'ascii'}
     },
     # pass
     "GoannaMeter*.csv": {
@@ -95,6 +96,7 @@ SPMDF_CONFIG = {
     },
 
     # The text specified to indicate the end of the header is not found
+    # pass when remove "header_end_text" value
     "Ad-hocMeter*.csv": {
         "source": "Ad-hoc",
         "pattern": "Meter*.csv",
@@ -104,7 +106,7 @@ SPMDF_CONFIG = {
                    'map_col_names':{'NMI':'MeterRef','Quality':'QualityCode','ReadingDateTime':'Timestamp',
                    'E (Usage kWh)':'Exp_KWH', 'B (Generation kWh)':'Imp_KWH', 'Q (Usage kvarh)':'Exp_KVARH',
                    'K (Generation kvarh)':'Imp_KVARH'}, 'truncateNMI':True,
-                   'encoding':'ascii','header_end_text':'\xef\xbb\xbf'}
+                   'encoding':'ascii'}
     }
 }
 

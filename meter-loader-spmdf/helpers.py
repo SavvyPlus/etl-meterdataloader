@@ -2,6 +2,7 @@
 
 import urllib
 import datetime
+from dateutil.parser import parse
 
 
 def create_csv(vals, header=None, delimiter=",", file_path=None):
@@ -93,3 +94,22 @@ def check_spmdf_pattern(file_name, pattern):
     """
     patterns = pattern.split("*")
     return check_like(file_name, patterns[0]+"%") and check_like(file_name, "%"+patterns[-1])
+
+
+def parse_date(s, text=True, format="%Y-%m-%d"):
+    """Convert text to date, if not found date return "".
+    Args:
+        s (string): text to parse date
+        text (boolean): return datetime type or datetime in format text
+        format (string): format text to return for date
+    Returns:
+        type: string or datetime
+    """
+    try:
+        date_parsed = parse(s)
+        if text:
+            return date_parsed.strftime(format)
+        else:
+            return date_parsed
+    except Exception as e:
+        return ""

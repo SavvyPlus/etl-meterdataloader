@@ -13,13 +13,7 @@ import helpers
 import s3_process
 import nemreader as nr
 
-# input_bucket = 'test-nem12.input'
-# processing_bucket = 'test-nem12.processing'
-# done_bucket = 'test-nem12.done'
-# imd_15_bucket = 'test-nem12.imd-15.prod'
-# imd_30_bucket = 'test-nem12.imd-30.prod'
 
-meter_bucket = "meterloader.poc"
 processing_folder = "processing"
 done_folder = "done"
 error_folder = "error"
@@ -63,14 +57,8 @@ def process_file(csv_reader, file_name, local=True):
             else:
                 continue
 
-    # TODO: return two files: 15 and 30
-    # format.get_30_from_15(all_readings_15min)
-    # all_readings = all_readings_15min + all_readings_30min
-    # all_readings = format.merge_imd(all_readings_15min)
-
     all_readings_15min = format.merge_imd(all_readings_15min)
     all_readings_30min = format.merge_imd(all_readings_30min, 30, 48)
-
 
     if local:
         helpers.create_csv(all_readings_15min, config.IMD_HEADER, file_path="../output/IMD_15_mins.csv")
@@ -95,6 +83,7 @@ def handler(event, context):
     """
     try:
         print ("Object added to: [%s]" % (event['Records'][0]['s3']['bucket']['name'],))
+        meter_bucket = event['Records'][0]['s3']['bucket']['name']
         key_name = event['Records'][0]['s3']['object']['key']
         key_name = helpers.unquote_url(key_name)
         file_name = key_name.split('/')[-1]
