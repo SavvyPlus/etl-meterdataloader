@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     commands:
-      - pip install -r meter-loader-nem/requirements.txt -t meter-loader-nem
+      - pip install -r meter-loader-nem/requirements.txt -t meter-loader-spmdf
 
 artifacts:
   base-directory: meter-loader-nem

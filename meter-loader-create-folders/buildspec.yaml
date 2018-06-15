@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - pip install --upgrade pip
+      - pip install -r meter-loader-create-folders/requirements.txt -t meter-loader-create-folders
+
+artifacts:
+  base-directory: meter-loader-create-folders
+  files:
+    - '**/*'
+  type: zip
+
+cache:
+  paths:
+    - /root/.cache/pip
