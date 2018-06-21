@@ -3,26 +3,6 @@ import config
 import helpers
 
 
-def process_file(lines, file_name):
-    """Short summary.
-
-    Args:
-        lines (list): list of rows in file nem
-        file_name (string): name of the file nem
-
-    Returns:
-        type: Description of returned object.
-
-    """
-    NEMMDF_B2BDetailes = []
-    NEMMDF_FileDetails = []
-    NEMMDF_IntervalData = []
-    NEMMDF_QualityDetails = []
-    NEMMDF_Stream = []
-    NEMMDF_StreamDay = []
-    NEMMDF_StreamDetails = []
-
-
 
 def generate_nemmdf_file_detail(row, source_file_id):
     """Extract and generate NEMMDF_FileDetails 100
@@ -34,7 +14,7 @@ def generate_nemmdf_file_detail(row, source_file_id):
         type: Description of returned object.
 
     """
-    values = row.split(",")
+    values = helpers.parse_row(row)
 
     id = helpers.random_uuid()
     version_header = values[1]
@@ -55,14 +35,14 @@ def generate_nemmdf_stream_detail(row):
         type: Description of returned object.
 
     """
-    values = row.split(",")
+    values = helpers.parse_row(row)
 
     id = helpers.random_uuid()
     nmi_configuration = values[2]
     register_id = values[3]
     mdm_data_stream_identifier = values[5]
     meter_serial_number = values[6]
-    uom = values[7]
+    uom = values[7].upper()
     interval_length = values[8]
     next_scheduled_read_date = helpers.parse_datetime(values[-1])
 
@@ -84,7 +64,7 @@ def generate_nemmdf_stream_day(row, stream_id, source_file_id, stream_detail_id,
         type: Description of returned object.
 
     """
-    values = row.split(",")
+    values = helpers.parse_row(row)
 
     interval_date = helpers.parse_datetime(values[1])
     update_date_time = helpers.parse_datetime(values[-2])
@@ -104,11 +84,11 @@ def generate_nemmdf_quality_detail(row):
         type: Description of returned object.
 
     """
-    values = row.split(",")
+    values = helpers.parse_row(row)
 
     id = helpers.random_uuid()
     quality_method = values[-5]
-    reason_code = values[-4] if values[-4] else -1
+    reason_code = values[-4] if values[-4] else "-1"
     reason_description = values[-3]
 
     return [id, quality_method, reason_code, reason_description]
@@ -131,13 +111,14 @@ def generate_nemmdf_interval_datas(row, stream_id, interval_length, uom_id, qual
     # TODO: uom_id ????
     records = []
 
-    values = row.split(",")
+    values = helpers.parse_row(row)
     interval_date = helpers.parse_datetime(values[1])
     interval_values = values[2:-5]
 
     for interval_number in range(len(interval_values)):
         record = [stream_id, interval_date, interval_number+1, interval_length,
                   interval_values[interval_number], uom_id, quality_detail_id]
+        record = [helpers.normalize_csv_value(r) for r in record]
         records.append(record)
 
     return records
@@ -149,7 +130,7 @@ def generate_nemmdf_b2b_detail(row, stream_id, interval_date):
     """
     id = helpers.random_uuid()
     if row:
-        values = row.split(",")
+        values = helpers.parse_row(row)
 
         trans_code = values[1]
         ret_service_order = values[2]
@@ -165,7 +146,7 @@ def generate_nemmdf_stream(row):
     """NEMMDF_Stream 200
     """
     id = helpers.random_uuid()
-    values = row.split(",")
+    values = helpers.parse_row(row)
     nmi = values[1]
     nmi_suffix = values[4]
     meter_point_ref = nmi_suffix[0]
