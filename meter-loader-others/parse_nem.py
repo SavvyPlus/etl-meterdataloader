@@ -139,7 +139,7 @@ def generate_nemmdf_b2b_detail(row, stream_id, interval_date):
 
         return [id, stream_id, interval_date, trans_code, ret_service_order, read_date_time, index_read]
     else:
-        return [id, stream_id, interval_date, config.DEFAULT_TRANS_CODE, "", interval_date + " 00:00:00", ""]
+        return [id, stream_id, interval_date, config.DEFAULT_TRANS_CODE, "", interval_date, ""]
 
 
 def generate_nemmdf_stream(row):
