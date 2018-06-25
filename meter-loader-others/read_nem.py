@@ -109,4 +109,4 @@ def read_nem_detail(rows, source_file_id):
         "NEMMDF_B2BDetailes": NEMMDF_B2BDetailes
     }
 
-    return results
+    return results, interval_date

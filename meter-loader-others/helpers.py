@@ -1,7 +1,17 @@
+import urllib
 import uuid
 import datetime
 
 from nemreader import nem_reader as nr
+
+
+def unquote_url(url, encoding='utf-8', errors='replace'):
+    """
+    https://docs.python.org/3/library/urllib.parse.html
+    using unquote_plus
+    Example: unquote_plus('/El+Ni%C3%B1o/') yields '/El Niño/'.
+    """
+    return urllib.parse.unquote_plus(url, encoding=encoding, errors=errors)
 
 
 def random_uuid():
