@@ -1,11 +1,12 @@
 -- Done
-CREATE EXTERNAL TABLE IF NOT EXISTS meter_poc.NEMMDF_FileDetails (
+CREATE EXTERNAL TABLE IF NOT EXISTS meter_poc.NEMMDF_B2BDetailes (
   `ID` string,
-  `VersionHeader` string,
-  `DateTime` timestamp,
-  `FromParticipant` string,
-  `ToParticipant` string,
-  `source_file_id` string
+  `StreamID` string,
+  `IntervalDate` timestamp,
+  `TransCode` string,
+  `RetServiceOrder` string,
+  `ReadDateTime` timestamp,
+  `IndexRead` string
 )
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
 WITH SERDEPROPERTIES (

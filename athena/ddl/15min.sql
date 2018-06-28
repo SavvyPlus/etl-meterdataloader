@@ -1,0 +1,67 @@
+CREATE EXTERNAL TABLE IF NOT EXISTS meter_poc.IMD_15 (
+  `MeterRef` string,
+  `Date` string,
+  `PeriodID` int,
+  `Net_KWH` double,
+  `Net_KVARH` double,
+  `Exp_KWH` double,
+  `Imp_KWH` double,
+  `Exp_KVARH` double,
+  `Imp_KVARH` double,
+  `KW` double,
+  `KVA` double,
+  `KVA15` double,
+  `KW15` double,
+  `source_file_id` string,
+  `MDPUpdateDateTime` string,
+  `QualityCode` string,
+  `QualityNumber` string
+) PARTITIONED BY (
+  year int,
+  month int,
+  day int
+)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+WITH SERDEPROPERTIES (
+  'serialization.format' = ',',
+  'field.delim' = ','
+)
+LOCATION ''
+-- location path
+TBLPROPERTIES ('has_encrypted_data'='false',
+               'skip.header.line.count'='1');
+
+
+--
+--
+--
+-- CREATE EXTERNAL TABLE IF NOT EXISTS meter_poc.imd_15_spmdf (
+--  `MeterRef` string,
+--  `Date` string,
+--  `PeriodID` int,
+--  `Net_KWH` double,
+--  `Net_KVARH` double,
+--  `Exp_KWH` double,
+--  `Imp_KWH` double,
+--  `Exp_KVARH` double,
+--  `Imp_KVARH` double,
+--  `KW` double,
+--  `KVA` double,
+--  `KVA15` double,
+--  `KW15` double,
+--  `source_file_id` string,
+--  `MDPUpdateDateTime` string,
+--  `QualityCode` string,
+--  `QualityNumber` string
+-- ) PARTITIONED BY (
+--  year int,
+--  month int,
+--  day int
+-- )
+-- ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+-- WITH SERDEPROPERTIES (
+--  'serialization.format' = ',',
+--  'field.delim' = ','
+-- ) LOCATION 's3://meterloader.poc/spmdf_athena/imd_15min/'
+-- TBLPROPERTIES ('has_encrypted_data'='false',
+--               'skip.header.line.count'='1');
